@@ -1,0 +1,3020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Computers — Administration Portal | Eluru Showroom Desk</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+
+    // Robust image path fallback
+    function resolveImgSrc(src) {
+      if (!src) return '/assets/gce_team.webp';
+      return src;
+    }
+
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          },
+          colors: {
+            brand: {
+              orange: "#F15A24",
+              amber: "#F59E0B",
+              dark: "#0E1117"
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Universal Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: "Plus Jakarta Sans", sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col selection:bg-[#F15A24] selection:text-white">
+
+  <!-- =========================================================================
+       1. AUTHENTICATION / LOGIN SCREEN (Hidden if logged in)
+       ========================================================================= -->
+  <div id="authScreen" class="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <!-- Ambient Background Glows -->
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute top-1/4 left-1/3 w-96 h-96 bg-[#F15A24]/15 blur-3xl rounded-full"></div>
+      <div class="absolute bottom-10 right-1/4 w-80 h-80 bg-amber-500/10 blur-3xl rounded-full"></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-md bg-slate-800/90 border border-slate-700/80 rounded-3xl p-8 sm:p-9 shadow-2xl backdrop-blur-xl text-left">
+      <div class="flex items-center gap-3.5 mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F15A24] to-amber-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20 font-black text-xl">
+          GC
+        </div>
+        <div>
+          <span class="font-mono text-[0.68rem] font-bold tracking-[0.16em] text-[#F15A24] uppercase">
+            ADMINISTRATION PORTAL
+          </span>
+          <h1 class="font-bold text-2xl text-white tracking-tight">
+            Global Computers
+          </h1>
+        </div>
+      </div>
+
+      <p class="text-slate-300 text-sm mb-6 leading-relaxed">
+        Enter your administrative credentials to access Slideshow Management, Hardware Showcases, and Customer Enquiries.
+      </p>
+
+      <form id="loginForm" class="space-y-4">
+        <!-- 1. Admin ID Input -->
+        <div>
+          <label class="block font-mono text-[0.72rem] font-bold text-slate-300 uppercase tracking-wider mb-2">
+            ADMIN USERNAME / ID
+          </label>
+          <div class="relative">
+            <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+              <i data-lucide="shield-check" class="w-4 h-4 text-[#F15A24]"></i>
+            </div>
+            <input
+              id="adminIdInput"
+              type="text"
+              required
+              autocomplete="username"
+              placeholder="e.g. GCEADMIN"
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 font-mono text-sm uppercase focus:border-[#F15A24] focus:ring-2 focus:ring-[#F15A24]/20 focus:outline-none transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- 2. Admin Password Input -->
+        <div>
+          <label class="block font-mono text-[0.72rem] font-bold text-slate-300 uppercase tracking-wider mb-2">
+            ADMIN PASSWORD
+          </label>
+          <div class="relative">
+            <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+              <i data-lucide="lock" class="w-4 h-4 text-amber-400"></i>
+            </div>
+            <input
+              id="passcodeInput"
+              type="password"
+              required
+              autocomplete="current-password"
+              placeholder="Enter password..."
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-12 py-3 text-white placeholder-slate-500 focus:border-[#F15A24] focus:ring-2 focus:ring-[#F15A24]/20 focus:outline-none transition-all"
+            />
+            <button
+              type="button"
+              id="togglePasswordBtn"
+              class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+              title="Toggle Password Visibility"
+            >
+              <i data-lucide="eye" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Remember Me Checkbox -->
+        <div class="flex items-center justify-between pt-1">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              id="rememberMeCheckbox"
+              type="checkbox"
+              checked
+              class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-[#F15A24] focus:ring-[#F15A24]/40 focus:ring-offset-slate-900 cursor-pointer"
+            />
+            <span class="text-xs text-slate-300 font-medium">Remember me on this device</span>
+          </label>
+          <span class="text-[0.68rem] font-mono text-slate-500">Stay Logged In</span>
+        </div>
+
+        <!-- Error message banner -->
+        <div id="loginError" class="hidden text-xs font-medium text-red-400 bg-red-950/50 border border-red-800/50 px-3.5 py-2.5 rounded-xl flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 text-red-400 flex-shrink-0"></i>
+          <span>Invalid Admin ID or Password. Please verify credentials.</span>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full py-3.5 bg-gradient-to-r from-[#F15A24] to-[#D94814] hover:from-[#EA580C] hover:to-[#C03C0D] active:scale-98 text-white font-bold text-[0.95rem] rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25 transition-all cursor-pointer mt-2"
+        >
+          <span>Unlock Admin Panel</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+      <div class="mt-6 pt-5 border-t border-slate-700/60 flex items-start gap-2.5 text-xs text-slate-400">
+        <i data-lucide="shield-check" class="w-4 h-4 text-[#F15A24] flex-shrink-0 mt-0.5"></i>
+        <div>
+          <span>Authorized Admin Credentials:</span>
+          <div class="mt-1 flex flex-wrap gap-2 font-mono text-[0.70rem]">
+            <span>ID: <code class="text-amber-300 bg-slate-900 px-1.5 py-0.5 rounded font-bold">GCEADMIN</code></span>
+            <span>Password: <code class="text-amber-300 bg-slate-900 px-1.5 py-0.5 rounded font-bold">GCEluru01</code></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. MAIN ADMIN DASHBOARD (Visible when logged in)
+       ========================================================================= -->
+  <div id="adminDashboard" class="hidden min-h-screen flex flex-col">
+    
+    <!-- Top Header -->
+    <header class="sticky top-0 z-40 bg-slate-900 text-white border-b border-slate-800 shadow-md">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        
+        <div class="flex items-center gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#F15A24] to-amber-500 flex items-center justify-center text-white shadow-md shadow-orange-500/20 font-black">
+            GC
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-lg tracking-tight text-white">Global Computers</span>
+              <span class="bg-[#F15A24] text-white font-mono text-[0.62rem] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                ADMIN DESK
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[0.70rem] text-slate-400 font-mono">Eluru Showroom Control Center</span>
+              <span id="cloudStatusBadge" class="bg-emerald-950 text-emerald-300 border border-emerald-800/60 font-mono text-[0.60rem] px-1.5 py-0.5 rounded flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="cloudStatusText">Firebase Cloud Connected</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            id="logoutBtn"
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-300 hover:text-white text-xs font-semibold rounded-xl border border-red-800/40 transition-colors cursor-pointer"
+          >
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="bg-slate-950 border-t border-slate-800/80 px-4 sm:px-6">
+        <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto py-2.5">
+          
+          <!-- Tab 1: Hardware Gallery Slideshow (Next-Gen Showcase) -->
+          <button
+            type="button"
+            id="tabGalleryBtn"
+            class="tab-btn inline-flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs font-bold transition-all bg-gradient-to-r from-[#F15A24] to-[#D94814] text-white shadow-sm cursor-pointer"
+          >
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            <span>1. Hardware Gallery Slideshow (Showroom Showcase)</span>
+            <span id="galleryBadgeCount" class="bg-black/40 text-white font-mono text-[0.62rem] px-1.5 py-0.5 rounded-full">0</span>
+          </button>
+
+          <!-- Tab 2: Special Offers Slideshow -->
+          <button
+            type="button"
+            id="tabOffersBtn"
+            class="tab-btn inline-flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+          >
+            <i data-lucide="flame" class="w-4 h-4"></i>
+            <span>2. Offers &amp; Deals Slideshow</span>
+            <span id="offersBadgeCount" class="bg-amber-400 text-slate-950 font-mono text-[0.62rem] font-bold px-1.5 py-0.5 rounded-full">0</span>
+          </button>
+
+          <!-- Tab 3: Customer Enquiries -->
+          <button
+            type="button"
+            id="tabEnquiriesBtn"
+            class="tab-btn inline-flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+          >
+            <i data-lucide="inbox" class="w-4 h-4"></i>
+            <span>3. Customer Enquiries &amp; Leads</span>
+            <span id="enquiriesBadgeCount" class="bg-slate-800 text-slate-200 font-mono text-[0.62rem] font-bold px-1.5 py-0.5 rounded-full">0</span>
+          </button>
+
+          <!-- Tab 4: Employee of the Month -->
+          <button
+            type=button
+            id=tabTeamBtn
+            class="tab-btn inline-flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+          >
+            <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+            <span>4. Employee of the Month ⭐</span>
+            <span id="bestEmployeeBadge" class="bg-amber-400 text-slate-950 font-mono text-[0.62rem] font-bold px-1.5 py-0.5 rounded-full hidden">Active</span>
+          </button>
+
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full">
+      
+      <!-- Toast Alert Notification -->
+      <div id="toastNotification" class="hidden mb-6 bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-xl flex items-center gap-2.5 shadow-sm">
+        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+        <span id="toastMessage" class="text-sm font-semibold">Success!</span>
+      </div>
+
+      <!-- Error Banner if any -->
+      <div id="errorNotification" class="hidden mb-6 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-xl flex items-center gap-2.5 shadow-sm">
+        <i data-lucide="alert-triangle" class="w-4 h-4 text-red-600 flex-shrink-0"></i>
+        <span id="errorMessage" class="text-sm font-semibold">Error occurred</span>
+      </div>
+
+      <!-- =====================================================================
+           TAB 1: HARDWARE GALLERY SLIDESHOW MANAGER (Full-Bleed Image Design)
+           ===================================================================== -->
+      <section id="galleryTabContent" class="space-y-8">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          <!-- Upload & Edit Form (6 Cols) -->
+          <div class="lg:col-span-6 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm text-left">
+            <div class="flex items-center justify-between pb-5 mb-6 border-b border-slate-100">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-orange-100 text-[#F15A24] flex items-center justify-center font-bold">
+                  <i data-lucide="layers" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h2 id="galleryFormHeading" class="font-extrabold text-xl text-slate-900">Add Full-Image Gallery Slide</h2>
+                  <p class="text-xs text-slate-500 font-mono">Cinematic full image with dark shade overlay &amp; big white title</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                id="cancelGalleryEditBtn"
+                class="hidden px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                Cancel Edit
+              </button>
+            </div>
+
+            <form id="galleryForm" class="space-y-5">
+              <input type="hidden" id="galleryEditId" value="" />
+
+              <!-- 1. Full Image Upload & Presets -->
+              <div>
+                <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  Full Showcase Image <span class="text-red-500">*</span>
+                </label>
+                
+                <input type="file" id="galleryFileInput" accept="image/*" class="hidden" />
+
+                <!-- Drop Zone -->
+                <div
+                  id="galleryImageDropArea"
+                  class="border-2 border-dashed border-slate-200 hover:border-[#F15A24] rounded-2xl p-4 sm:p-5 text-center transition-all bg-slate-50/60 cursor-pointer group"
+                >
+                  <div id="galleryImagePlaceholder" class="flex flex-col items-center justify-center py-2">
+                    <div class="w-10 h-10 rounded-xl bg-white text-slate-400 group-hover:text-[#F15A24] shadow-xs flex items-center justify-center mb-2 transition-colors">
+                      <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 group-hover:text-[#F15A24] transition-colors">
+                      Click to Browse Hardware Image from Device
+                    </span>
+                    <span class="text-[0.70rem] text-slate-400 mt-0.5">
+                      Fills the entire slide container with high clarity
+                    </span>
+                  </div>
+
+                  <div id="galleryImagePreviewWrapper" class="hidden relative rounded-xl overflow-hidden bg-slate-900 p-2 border border-slate-200">
+                    <img id="galleryImagePreviewImg" src="" alt="Preview" class="max-h-40 mx-auto object-cover" />
+                    <button
+                      type="button"
+                      id="removeGalleryImageBtn"
+                      class="absolute top-2 right-2 p-1.5 rounded-lg bg-red-600 text-white shadow-md hover:bg-red-700 text-xs"
+                      title="Remove image"
+                    >
+                      <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Presets -->
+                <div class="mt-2.5">
+                  <span class="text-[0.68rem] font-mono text-slate-400 block mb-1">Or choose showroom stock asset:</span>
+                  <div class="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto custom-scrollbar p-1 bg-slate-100/70 rounded-xl">
+                    <button type="button" class="gallery-preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-white hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/gce_team.webp">Custom Rig i9</button>
+                    <button type="button" class="gallery-preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-white hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/pro_monitor.webp">Curved 4K Display</button>
+                    <button type="button" class="gallery-preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-white hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/special_offer_2.webp">Showroom Studio</button>
+                    <button type="button" class="gallery-preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-white hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/gpu_card.webp">RTX 4080 Super GPU</button>
+                    <button type="button" class="gallery-preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-white hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/motherboard.webp">Z790 Motherboard</button>
+                    <button type="button" class="gallery-preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-white hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/mech_keyboard.webp">AeroCNC Keyboard</button>
+                    <button type="button" class="gallery-preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-white hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/epson_printer.webp">Epson EcoTank</button>
+                    <button type="button" class="gallery-preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-white hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/ram_modules.webp">DDR5 RGB RAM</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Big Headline Title (White Text on Black Shade) -->
+              <div>
+                <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Big Headline Title (White Color) <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="galleryTitleInput"
+                  required
+                  placeholder="e.g. GeForce RTX 4080 Super 16GB Triple-Fan Edition"
+                  class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 outline-none transition-all"
+                />
+              </div>
+
+              <!-- 3. Tagline / Subtitle in White Color -->
+              <div>
+                <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Tagline / Subtitle (White Color below title)
+                </label>
+                <textarea
+                  id="gallerySubtitleInput"
+                  rows="2"
+                  placeholder="e.g. Powerhouse graphics acceleration engineered for 4K ray-traced gaming, 3D Blender rendering, and local AI model execution."
+                  class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-slate-800 outline-none transition-all"
+                ></textarea>
+              </div>
+
+              <!-- 4. Category & Eyebrow Tag -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Category Filter Pill <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="galleryCategoryInput"
+                    required
+                    list="galleryCategoryDatalist"
+                    placeholder="e.g. GRAPHICS & AI"
+                    class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-slate-900 outline-none transition-all"
+                  />
+                  <datalist id="galleryCategoryDatalist">
+                    <option value="CUSTOM WORKSTATIONS"></option>
+                    <option value="CREATOR DISPLAYS"></option>
+                    <option value="STUDIO GEAR"></option>
+                    <option value="GRAPHICS & AI"></option>
+                    <option value="MOTHERBOARDS"></option>
+                    <option value="PERIPHERALS"></option>
+                  </datalist>
+                </div>
+
+                <div>
+                  <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Eyebrow / Tag Text
+                  </label>
+                  <input
+                    type="text"
+                    id="galleryTagInput"
+                    placeholder="e.g. EXTREME RAY TRACING"
+                    class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-slate-900 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <!-- Submit & Reset Buttons -->
+              <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  id="seedDefaultGalleryBtn"
+                  class="px-3.5 py-2.5 text-xs font-mono font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                  title="Restore default 6 showroom slides"
+                >
+                  <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                  <span>Reset 6 Defaults</span>
+                </button>
+
+                <button
+                  type="submit"
+                  id="gallerySubmitBtn"
+                  class="px-6 py-3 bg-gradient-to-r from-[#F15A24] to-[#D94814] hover:from-[#EA580C] hover:to-[#C03C0D] active:scale-98 text-white font-bold text-sm rounded-xl flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all cursor-pointer"
+                >
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                  <span id="gallerySubmitBtnText">Publish Slide</span>
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+          <!-- Live Full-Image Card Preview with Black Gradient Shade (6 Cols) -->
+          <div class="lg:col-span-6 flex flex-col gap-4 text-left">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Live Full-Image Slide Preview</span>
+              </span>
+              <span class="font-mono text-[0.68rem] text-slate-400">Customer View</span>
+            </div>
+
+            <!-- Preview Container with Black Gradient Scrim -->
+            <div class="relative w-full h-[380px] sm:h-[440px] bg-slate-950 rounded-3xl border border-slate-800 shadow-xl overflow-hidden flex items-center justify-center">
+              
+              <!-- Top Accent Bar -->
+              <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#F15A24] via-amber-400 to-[#F15A24] z-30"></div>
+
+              <!-- Top Left Category Pill -->
+              <div id="liveGalleryCategory" class="absolute top-4 left-4 z-30 bg-black/70 backdrop-blur-md text-white font-mono text-[0.62rem] font-bold px-2.5 py-0.5 rounded-full border border-white/15 uppercase">
+                GRAPHICS &amp; AI
+              </div>
+
+              <!-- Full Image -->
+              <img id="liveGalleryImg" src="/assets/gce_team.webp" alt="Live Hardware Preview" class="relative z-10 max-h-full max-w-full object-contain select-none" />
+
+              <!-- Bottom Black Gradient Shade with Big White Title & Tagline -->
+              <div class="absolute inset-x-0 bottom-0 pt-28 pb-5 px-6 bg-gradient-to-t from-black/95 via-black/80 to-transparent flex flex-col justify-end z-20 text-left">
+                
+                <!-- Eyebrow Tag -->
+                <div id="liveGalleryTagWrapper" class="inline-flex items-center gap-1.5 mb-1.5 font-mono text-[0.62rem] font-extrabold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-white/10 text-amber-300 border border-white/15 backdrop-blur-md w-fit">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                  <span id="liveGalleryTag">EXTREME RAY TRACING</span>
+                </div>
+
+                <!-- Big White Headline Title -->
+                <h3 id="liveGalleryTitle" class="font-heading font-black text-xl sm:text-2xl text-white leading-tight tracking-tight mb-1 drop-shadow-md">
+                  GeForce RTX 4080 Super 16GB Triple-Fan Edition
+                </h3>
+
+                <!-- Tagline in White -->
+                <p id="liveGallerySubtitle" class="text-xs sm:text-sm text-slate-200 font-normal leading-relaxed drop-shadow line-clamp-2">
+                  Powerhouse graphics acceleration engineered for 4K ray-traced gaming, 3D Blender rendering, and local AI model execution.
+                </p>
+
+
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Active Hardware Slides Cards Grid -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm text-left">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+            <div>
+              <h3 class="font-extrabold text-lg text-slate-900">
+                Active Hardware Slides (<span id="galleryListCount">0</span>)
+              </h3>
+              <p class="text-xs text-slate-500">Live order reflects on the website showroom gallery slider</p>
+            </div>
+
+            <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1" id="galleryCategoryFilterBar">
+              <!-- Category Filter Buttons -->
+            </div>
+          </div>
+
+          <div id="galleryCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Dynamically generated hardware cards -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- =====================================================================
+           TAB 2: OFFERS & DEALS MANAGER
+           ===================================================================== -->
+      <section id="offersTabContent" class="hidden space-y-8">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          <!-- Upload Form -->
+          <div class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm text-left">
+            <div class="flex items-center justify-between pb-5 mb-6 border-b border-slate-100">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-orange-100 text-[#F15A24] flex items-center justify-center font-bold">
+                  <i data-lucide="sparkles" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h2 id="offerFormHeading" class="font-extrabold text-xl text-slate-900">Upload &amp; Add New Offer</h2>
+                  <p class="text-xs text-slate-500 font-mono">Special Showroom Offers &amp; Deals Section</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                id="cancelEditBtn"
+                class="hidden px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                Cancel Edit
+              </button>
+            </div>
+
+            <form id="offerForm" class="space-y-5">
+              <input type="hidden" id="offerEditId" value="" />
+
+              <!-- Image Upload -->
+              <div>
+                <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  Offer Image Banner <span class="text-red-500">*</span>
+                </label>
+                
+                <input type="file" id="offerFileInput" accept="image/*" class="hidden" />
+
+                <!-- Drop Area -->
+                <div
+                  id="imageDropArea"
+                  class="border-2 border-dashed border-slate-200 hover:border-[#F15A24] rounded-2xl p-4 sm:p-6 text-center transition-all bg-slate-50/60 cursor-pointer group"
+                >
+                  <div id="imagePlaceholder" class="flex flex-col items-center justify-center py-2">
+                    <div class="w-10 h-10 rounded-xl bg-white text-slate-400 group-hover:text-[#F15A24] shadow-xs flex items-center justify-center mb-2 transition-colors">
+                      <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 group-hover:text-[#F15A24] transition-colors">
+                      Click to Select Image from Device
+                    </span>
+                    <span class="text-[0.70rem] text-slate-400 mt-0.5">
+                      JPG, PNG, or WebP (High Resolution)
+                    </span>
+                  </div>
+
+                  <div id="imagePreviewWrapper" class="hidden relative rounded-xl overflow-hidden bg-white p-2 border border-slate-200">
+                    <img id="imagePreviewImg" src="" alt="Preview" class="max-h-36 mx-auto object-cover" />
+                    <button
+                      type="button"
+                      id="removeImageBtn"
+                      class="absolute top-2 right-2 p-1.5 rounded-lg bg-red-600 text-white shadow-md hover:bg-red-700 text-xs"
+                      title="Remove image"
+                    >
+                      <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Presets -->
+                <div class="mt-2.5">
+                  <span class="text-[0.68rem] font-mono text-slate-400 block mb-1">Or choose stock banner:</span>
+                  <div class="flex flex-wrap gap-1.5">
+                    <button type="button" class="preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-slate-100 hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/special_offer_1.webp">Special Rig Banner 1</button>
+                    <button type="button" class="preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-slate-100 hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/special_offer_2.webp">Festive Accessories Banner 2</button>
+                    <button type="button" class="preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-slate-100 hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/pro_monitor.webp">4K Creator Monitor</button>
+                    <button type="button" class="preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-slate-100 hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/epson_printer.webp">Epson EcoTank Fleet</button>
+                    <button type="button" class="preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-slate-100 hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/motherboard.webp">Z790 Motherboard</button>
+                    <button type="button" class="preset-btn text-[0.68rem] font-mono px-2 py-0.5 rounded bg-slate-100 hover:bg-orange-50 border border-slate-200 text-slate-700" data-url="/assets/mech_keyboard.webp">AeroCNC Keyboard</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Offer Title -->
+              <div>
+                <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Offer Title Headline
+                </label>
+                <input
+                  type="text"
+                  id="offerTitleInput"
+                  placeholder="e.g. Creator Studio 4K Workstation Bundle"
+                  class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 outline-none transition-all"
+                />
+              </div>
+
+              <!-- Badge -->
+              <div>
+                <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Promotional Badge Pill <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="offerBadgeInput"
+                  required
+                  placeholder="e.g. MEGA COMBO DEAL / EXCLUSIVE SHOWROOM DEAL"
+                  class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-slate-900 outline-none transition-all"
+                />
+              </div>
+
+              <!-- Description -->
+              <div>
+                <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Offer Details / Discount Text <span class="text-red-500">*</span>
+                </label>
+                <textarea
+                  id="offerDescInput"
+                  required
+                  rows="3"
+                  placeholder="Special Festive Discount: Intel Core i9 14th Gen + RTX 4080 Super with ₹45,000 Instant Savings."
+                  class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-slate-800 outline-none transition-all"
+                ></textarea>
+              </div>
+
+              <!-- Submit -->
+              <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  id="seedDefaultOffersBtn"
+                  class="px-3.5 py-2.5 text-xs font-mono font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                  title="Restore default 6 showroom offers"
+                >
+                  <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                  <span>Reset Default Offers</span>
+                </button>
+
+                <button
+                  type="submit"
+                  id="offerSubmitBtn"
+                  class="px-6 py-3 bg-gradient-to-r from-[#F15A24] to-[#D94814] hover:from-[#EA580C] hover:to-[#C03C0D] active:scale-98 text-white font-bold text-sm rounded-xl flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all cursor-pointer"
+                >
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                  <span id="offerSubmitBtnText">Publish Offer Slide</span>
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+          <!-- Live Preview -->
+          <div class="lg:col-span-5 flex flex-col gap-4 text-left">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Live Offer Slide Preview</span>
+              </span>
+              <span class="font-mono text-[0.68rem] text-slate-400">Customer View</span>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden transition-all">
+              <div class="h-1.5 w-full bg-gradient-to-r from-[#F15A24] via-amber-400 to-[#F15A24]"></div>
+              
+              <div class="relative w-full h-56 bg-slate-100 flex items-center justify-center p-4 overflow-hidden">
+                <img id="liveImg" src="/assets/special_offer_1.webp" alt="Live Preview" class="max-h-full max-w-full object-cover drop-shadow-md" />
+                <div id="liveBadge" class="absolute top-3.5 left-3.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-mono text-[0.62rem] font-bold px-2.5 py-0.5 rounded-full uppercase shadow-xs flex items-center gap-1">
+                  <i data-lucide="sparkles" class="w-3 h-3"></i>
+                  <span id="liveBadgeText">MEGA COMBO DEAL</span>
+                </div>
+              </div>
+
+              <div class="p-5 bg-white border-t border-slate-100">
+                <h3 id="liveTitle" class="font-bold text-sm text-slate-900 leading-snug mb-1">
+                  Creator Studio 4K Workstation Bundle
+                </h3>
+                <p id="liveDesc" class="text-xs text-slate-600 font-medium leading-relaxed">
+                  Special Festive Discount: Intel Core i9 + RTX 4080 Super with ₹45,000 Instant Savings.
+                </p>
+                <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <span class="text-[0.68rem] font-mono text-slate-400">Claim This Offer CTA</span>
+                  <div class="px-3 py-1 bg-amber-400 text-slate-950 font-bold text-xs rounded-lg shadow-2xs inline-flex items-center gap-1">
+                    <span>Claim Offer</span>
+                    <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Active Offers Cards Grid -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm text-left">
+          <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+            <div>
+              <h3 class="font-extrabold text-lg text-slate-900">
+                All Active Offers (<span id="offersListCount">0</span>)
+              </h3>
+              <p class="text-xs text-slate-500">Live order reflects on the website deals slider</p>
+            </div>
+          </div>
+
+          <div id="offersCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Dynamically generated offer cards -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- =====================================================================
+           TAB 3: CUSTOMER ENQUIRIES & LEADS INBOX
+           ===================================================================== -->
+      <section id="enquiriesTabContent" class="hidden space-y-6 text-left">
+        
+        <!-- Summary Stats Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Enquiries</span>
+              <span id="statTotalEnq" class="font-black text-2xl text-slate-900 mt-1 block">0</span>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
+              <i data-lucide="inbox" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-orange-200 shadow-sm flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-[#F15A24] uppercase tracking-wider block">New Leads</span>
+              <span id="statNewEnq" class="font-black text-2xl text-[#F15A24] mt-1 block">0</span>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-orange-100 text-[#F15A24] flex items-center justify-center font-bold">
+              <i data-lucide="clock" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">In Progress</span>
+              <span id="statContactedEnq" class="font-black text-2xl text-slate-900 mt-1 block">0</span>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+              <i data-lucide="message-square" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider block">Resolved</span>
+              <span id="statResolvedEnq" class="font-black text-2xl text-slate-900 mt-1 block">0</span>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+              <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Bar -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto">
+            <button type="button" class="enq-filter-btn px-3 py-1 rounded-lg font-mono text-[0.68rem] font-bold bg-slate-900 text-white" data-status="ALL">ALL LEADS</button>
+            <button type="button" class="enq-filter-btn px-3 py-1 rounded-lg font-mono text-[0.68rem] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700" data-status="NEW">NEW LEADS</button>
+            <button type="button" class="enq-filter-btn px-3 py-1 rounded-lg font-mono text-[0.68rem] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700" data-status="CONTACTED">IN PROGRESS</button>
+            <button type="button" class="enq-filter-btn px-3 py-1 rounded-lg font-mono text-[0.68rem] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700" data-status="RESOLVED">RESOLVED</button>
+          </div>
+
+          <div class="flex items-center gap-3 w-full md:w-auto">
+            <div class="relative w-full md:w-64">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+              <input
+                type="text"
+                id="enquirySearchInput"
+                placeholder="Search name, phone, product..."
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#F15A24]"
+              />
+            </div>
+            <button
+              type="button"
+              id="clearAllEnqBtn"
+              class="px-3 py-2 text-xs font-mono font-semibold text-red-600 hover:bg-red-50 rounded-xl border border-red-200 transition-colors whitespace-nowrap cursor-pointer"
+            >
+              Clear Inbox
+            </button>
+          </div>
+        </div>
+
+        <!-- Enquiries Cards List -->
+        <div id="enquiriesListContainer" class="space-y-3">
+          <!-- Dynamic enquiry cards -->
+        </div>
+
+      </section>
+
+      <!-- =========================================================================
+           TAB 4: SHOWROOM SPECIALISTS & EMPLOYEE HONORS (FULL EDITABLE TEAM DESK)
+           ========================================================================= -->
+      <section id="teamTabContent" class="hidden space-y-8 text-left">
+        
+        <!-- Header Banner -->
+        <div class="bg-gradient-to-br from-slate-900 via-amber-950/40 to-slate-900 border border-amber-500/30 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl">
+          <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+            <div class="max-w-2xl">
+              <div class="inline-flex items-center gap-2 bg-amber-400/10 border border-amber-400/30 text-amber-400 px-3 py-1 rounded-full text-xs font-mono font-bold mb-3">
+                <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                <span>TEAM &amp; EMPLOYEE HONORS CONTROLLER</span>
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-heading font-black text-white leading-tight mb-2">
+                Showroom Specialists &amp; Honors Desk
+              </h2>
+              <p class="text-slate-300 text-sm leading-relaxed">
+                Full administrative control over your showroom staff. Edit employee names, upload photos, change designations, and award special luxury badges (<strong>Gold Luxury Crown</strong>, <strong>Best Calls Star</strong>, <strong>Master Architect</strong>, <strong>Service Specialist</strong>, or custom titles).
+              </p>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <button
+                type="button"
+                id="addNewTeamMemberBtn"
+                class="px-4 py-2.5 bg-gradient-to-r from-[#F15A24] to-[#D94814] hover:from-[#EA580C] hover:to-[#C03C0D] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all cursor-pointer whitespace-nowrap"
+              >
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                <span>Add New Member</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add / Edit Team Member Form & Live Card Preview Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          <!-- Edit / Create Form (7 cols) -->
+          <div class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm text-left">
+            <div class="flex items-center justify-between pb-5 mb-6 border-b border-slate-100">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-orange-100 text-[#F15A24] flex items-center justify-center font-bold">
+                  <i data-lucide="user-cog" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h3 id="teamFormHeading" class="font-extrabold text-xl text-slate-900">Add / Edit Team Member</h3>
+                  <p class="text-xs text-slate-500 font-mono">Custom photo, designation, division tag, bio, and badge honors</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                id="cancelTeamEditBtn"
+                class="hidden px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              >
+                Cancel Edit
+              </button>
+            </div>
+
+            <form id="teamMemberForm" class="space-y-5">
+              <input type="hidden" id="teamEditId" value="" />
+
+              <!-- 1. Photo Upload & Stock Presets -->
+              <div>
+                <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  Employee Photo / Avatar <span class="text-red-500">*</span>
+                </label>
+                
+                <input type="file" id="teamFileInput" accept="image/*" class="hidden" />
+
+                <!-- Drop Area -->
+                <div
+                  id="teamImageDropArea"
+                  class="border-2 border-dashed border-slate-200 hover:border-[#F15A24] rounded-2xl p-4 text-center transition-all bg-slate-50/60 cursor-pointer group"
+                >
+                  <div id="teamImagePlaceholder" class="flex flex-col items-center justify-center py-2">
+                    <div class="w-10 h-10 rounded-xl bg-white text-slate-400 group-hover:text-[#F15A24] shadow-xs flex items-center justify-center mb-1.5 transition-colors">
+                      <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 group-hover:text-[#F15A24] transition-colors">
+                      Click to Select or Drop Photo from Computer
+                    </span>
+                    <span class="text-[0.70rem] text-slate-400 mt-0.5">
+                      Auto-compressed for instant website loading
+                    </span>
+                  </div>
+
+                  <div id="teamImagePreviewWrapper" class="hidden relative rounded-xl overflow-hidden bg-slate-900 p-2 border border-slate-200 w-fit mx-auto">
+                    <img id="teamImagePreviewImg" src="" alt="Preview" class="w-20 h-20 rounded-full object-cover border-2 border-amber-400" />
+                    <button
+                      type="button"
+                      id="removeTeamImageBtn"
+                      class="absolute -top-1 -right-1 p-1 rounded-full bg-red-600 text-white shadow-md hover:bg-red-700 text-xs cursor-pointer"
+                      title="Remove image"
+                    >
+                      <i data-lucide="x" class="w-3 h-3"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="mt-2.5">
+                  <span class="text-[0.68rem] font-mono text-slate-400 block mb-1">Or choose showroom staff asset:</span>
+                  <div class="flex flex-wrap gap-1.5">
+                    <button type="button" class="team-preset-btn text-[0.68rem] font-mono px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-orange-50 hover:text-[#F15A24] border border-slate-200 text-slate-700 font-semibold cursor-pointer" data-url="/assets/Kamal.webp">Kamal</button>
+                    <button type="button" class="team-preset-btn text-[0.68rem] font-mono px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-orange-50 hover:text-[#F15A24] border border-slate-200 text-slate-700 font-semibold cursor-pointer" data-url="/assets/Krupamani.webp">Krupamani</button>
+                    <button type="button" class="team-preset-btn text-[0.68rem] font-mono px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-orange-50 hover:text-[#F15A24] border border-slate-200 text-slate-700 font-semibold cursor-pointer" data-url="/assets/Phani.webp">Phani</button>
+                    <button type="button" class="team-preset-btn text-[0.68rem] font-mono px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-orange-50 hover:text-[#F15A24] border border-slate-200 text-slate-700 font-semibold cursor-pointer" data-url="/assets/Srinu.webp">Srinu</button>
+                    <button type="button" class="team-preset-btn text-[0.68rem] font-mono px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-orange-50 hover:text-[#F15A24] border border-slate-200 text-slate-700 font-semibold cursor-pointer" data-url="/assets/gce_founder.webp">Founder</button>
+                    <button type="button" class="team-preset-btn text-[0.68rem] font-mono px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-orange-50 hover:text-[#F15A24] border border-slate-200 text-slate-700 font-semibold cursor-pointer" data-url="/assets/gce_team.webp">Showroom Team</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Employee Name & Division Tag -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Employee Name <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="teamNameInput"
+                    required
+                    placeholder="e.g. Kamal"
+                    class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Division / Role Tag <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="teamTagInput"
+                    required
+                    placeholder="e.g. PC ARCHITECTURE"
+                    list="teamTagDatalist"
+                    class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-slate-900 outline-none transition-all uppercase"
+                  />
+                  <datalist id="teamTagDatalist">
+                    <option value="PC ARCHITECTURE"></option>
+                    <option value="CHIP-LEVEL LAB"></option>
+                    <option value="ENTERPRISE FLEETS"></option>
+                    <option value="SECURITY & CCTV"></option>
+                    <option value="HARDWARE CONSULTANT"></option>
+                    <option value="CUSTOMER SUPPORT"></option>
+                  </datalist>
+                </div>
+              </div>
+
+              <!-- 3. Designation / Department -->
+              <div>
+                <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Designation / Department <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="teamDeptInput"
+                  required
+                  placeholder="e.g. Custom PC & Gaming Division"
+                  class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 outline-none transition-all"
+                />
+              </div>
+
+              <!-- 4. Special Honor / Badge Tier -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Special Honor Badge Theme
+                  </label>
+                  <select
+                    id="teamBadgeTypeSelect"
+                    class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 outline-none transition-all cursor-pointer"
+                  >
+                    <option value="none">⚪ Standard Member (Default Showroom Card)</option>
+                    <option value="gold">🏆 Employee of the Month (Gold Luxury Theme)</option>
+                    <option value="cyan">📞 Best Calls &amp; Customer Support (Cyan Neon Theme)</option>
+                    <option value="purple">⚡ Master Hardware Architect (Purple Neon Theme)</option>
+                    <option value="emerald">🛠️ Service Lab Specialist (Emerald Theme)</option>
+                    <option value="custom">🎖️ Custom Showroom Honor (Amber Theme)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Badge Title / Honor Text
+                  </label>
+                  <input
+                    type="text"
+                    id="teamBadgeTitleInput"
+                    placeholder="e.g. EMPLOYEE OF THE MONTH / BEST CALLS"
+                    class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-slate-900 outline-none transition-all uppercase"
+                  />
+                </div>
+              </div>
+
+              <!-- 5. Matter / Bio / Achievement Shoutout -->
+              <div>
+                <label class="block font-mono text-[0.72rem] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Matter / Highlight / Bio (Optional)
+                </label>
+                <textarea
+                  id="teamBioInput"
+                  rows="2"
+                  placeholder="e.g. Recognized for 100+ flawless custom PC assemblies and 5-star customer ratings."
+                  class="w-full bg-slate-50 border border-slate-200 focus:border-[#F15A24] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-slate-800 outline-none transition-all"
+                ></textarea>
+              </div>
+
+              <!-- Submit & Reset Buttons -->
+              <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  id="seedDefaultTeamBtn"
+                  class="px-3.5 py-2.5 text-xs font-mono font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                  title="Reset & populate the 4 default showroom specialists"
+                >
+                  <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                  <span>Reset 4 Defaults</span>
+                </button>
+
+                <button
+                  type="submit"
+                  id="teamSubmitBtn"
+                  class="px-6 py-3 bg-gradient-to-r from-[#F15A24] to-[#D94814] hover:from-[#EA580C] hover:to-[#C03C0D] active:scale-98 text-white font-bold text-sm rounded-xl flex items-center gap-2 shadow-md shadow-orange-500/20 transition-all cursor-pointer"
+                >
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                  <span id="teamSubmitBtnText">Save Team Member</span>
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+          <!-- Live Card Preview (5 cols) -->
+          <div class="lg:col-span-5 flex flex-col gap-4 text-left">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Live Card Preview (Customer View)</span>
+              </span>
+              <span class="font-mono text-[0.68rem] text-slate-400">Real-Time</span>
+            </div>
+
+            <!-- Preview Container that transforms based on selected badge theme -->
+            <div id="liveTeamCardContainer" class="rounded-2xl p-5 border transition-all duration-300 flex flex-col justify-between text-left relative overflow-hidden bg-white border-slate-200 shadow-sm">
+              <div id="liveTeamTopBar" class="hidden absolute top-0 inset-x-0 h-1"></div>
+
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-3">
+                  <div id="liveTeamBadgePill" class="font-mono text-[0.60rem] font-bold px-2 py-0.5 rounded uppercase bg-slate-100 text-slate-600">
+                    PC ARCHITECTURE
+                  </div>
+                  <div id="liveTeamIconWrapper" class="text-slate-400">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3.5">
+                  <div id="liveTeamAvatarWrapper" class="w-18 h-18 rounded-full overflow-hidden relative flex-shrink-0 border-2 border-orange-300 bg-slate-100">
+                    <img id="liveTeamImg" src="/assets/Kamal.webp" alt="Avatar" class="w-full h-full object-cover" />
+                    <div id="liveTeamStatusDot" class="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
+                  </div>
+
+                  <div>
+                    <h4 id="liveTeamName" class="font-heading font-extrabold text-lg text-slate-900 leading-tight">
+                      Kamal
+                    </h4>
+                    <span id="liveTeamDept" class="font-mono text-xs font-semibold text-slate-500 block mt-1">
+                      Custom PC &amp; Gaming Division
+                    </span>
+                  </div>
+                </div>
+
+                <p id="liveTeamBio" class="hidden mt-3 text-xs text-slate-600 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100 leading-relaxed">
+                  "Recognized for excellence."
+                </p>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-slate-400 font-mono text-[0.66rem]">
+                <span>Verified Showroom Specialist</span>
+                <span class="text-emerald-600 font-bold">● Active on Website</span>
+              </div>
+            </div>
+
+            <!-- Helpful Legend of Badge Themes -->
+            <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 text-slate-300 text-xs space-y-2">
+              <span class="font-mono text-[0.68rem] font-bold text-amber-400 uppercase tracking-wider block mb-1">
+                Available Honors &amp; Styling Themes:
+              </span>
+              <div class="grid grid-cols-2 gap-2 text-[0.72rem] font-mono">
+                <span class="text-amber-300">🏆 Gold Luxury (Crown)</span>
+                <span class="text-sky-300">📞 Cyan Neon (Best Calls)</span>
+                <span class="text-purple-300">⚡ Purple (Architect)</span>
+                <span class="text-emerald-300">🛠️ Emerald (Service Lab)</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Active Showroom Specialists Grid -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm text-left">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+            <div>
+              <h3 class="font-extrabold text-lg text-slate-900">
+                Showroom Specialists (<span id="teamListCount">0</span>)
+              </h3>
+              <p class="text-xs text-slate-500">Live order reflects on the website leadership &amp; team section</p>
+            </div>
+          </div>
+
+          <div id="adminTeamGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- =========================================================================
+       3. CLIENT JAVASCRIPT & BACKEND INTEGRATION
+       ========================================================================= -->
+  <script>
+    (function() {
+      // Firebase Config
+      const firebaseConfig = {
+        apiKey: "AIzaSyCOnKJIYQ2BTH0Se5ePFoRuQzTTUu1woZo",
+        authDomain: "globalcomputerseluru-dddd3.firebaseapp.com",
+        projectId: "globalcomputerseluru-dddd3",
+        storageBucket: "globalcomputerseluru-dddd3.firebasestorage.app",
+        messagingSenderId: "177329078331",
+        appId: "1:177329078331:web:bcd123d8b3fa34f7aedc1e",
+        measurementId: "G-QBRCMSQV0P"
+      };
+
+      let db = null;
+      try {
+        if (typeof firebase !== "undefined" && !firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+          db = firebase.firestore();
+        } else if (typeof firebase !== "undefined" && firebase.apps.length) {
+          db = firebase.firestore();
+        }
+      } catch (err) {
+        console.warn("Firebase initialization notice:", err);
+      }
+
+      // Storage Keys
+      const AUTH_KEY = "gce_admin_auth_v1";
+      const GALLERY_KEY = "gc_gallery_slides_v2";
+      const OFFERS_KEY = "gc_offers_slides_v3";
+      const ENQUIRIES_KEY = "gc_enquiries_list_v1";
+
+      // ---------------- DEFAULT HARDWARE SHOWCASE SLIDES ----------------
+      const DEFAULT_GALLERY_SLIDES = [
+        {
+          id: "team-gce",
+          category: "OUR TEAM",
+          tag: "GLOBAL COMPUTERS ELURU",
+          title: "Certified Engineers & Dedicated Hardware Specialists",
+          subtitle: "Meet the passionate technology experts behind Eluru’s premier computer showroom and service center, dedicated to powering your digital lifestyle.",
+          image: "/assets/gce_team.webp",
+          order: 0
+        },
+        {
+          id: "custom-rigs",
+          category: "CUSTOM WORKSTATIONS",
+          tag: "FLAGSHIP RIG ARCHITECTURE",
+          title: "Custom High-End Rigs & Creator Workstations",
+          subtitle: "Hand-crafted precision assemblies built with Intel Core i9 / AMD Ryzen 9, custom liquid cooling loops, and ultra-quiet airflow dynamics.",
+          image: "/assets/special_offer_1.webp",
+          order: 1
+        },
+        {
+          id: "creator-ecosystem",
+          category: "SHOWROOM SHOWCASE",
+          tag: "COMPLETE COMPUTING ECOSYSTEM",
+          title: "Ultra Pro Computing & Gaming Showcase",
+          subtitle: "From elite esports peripherals to heavy-duty multi-monitor creator suites, discover top-tier computing setups tuned for maximum productivity.",
+          image: "/assets/special_offer_2.webp",
+          order: 2
+        }
+      ];
+
+      // ---------------- DEFAULT OFFERS ----------------
+      const DEFAULT_OFFERS = [
+        {
+          id: "offer-banner-1",
+          badge: "EXCLUSIVE SHOWROOM DEAL",
+          offerTitle: "Next-Gen Custom Rig & Hardware Mega Specials",
+          image: "/assets/special_offer_1.webp",
+          description: "Special Launch Offer: Premium Custom PC Builds with Genuine Warranty, High-Speed Performance & Zero-Cost Assembly.",
+          order: 0
+        },
+        {
+          id: "offer-banner-2",
+          badge: "FESTIVE COMBO OFFER",
+          offerTitle: "Ultra Pro Computing & Accessories Showcase",
+          image: "/assets/special_offer_2.webp",
+          description: "Limited Period Clearance: Best Price Guarantee on Gaming Monitors, Mechanical Keyboards, and Enterprise Hardware in Eluru.",
+          order: 1
+        },
+        {
+          id: "1",
+          badge: "MEGA COMBO DEAL",
+          offerTitle: "Creator Studio 4K Workstation Bundle",
+          image: "/assets/pro_monitor.webp",
+          description: "Special Festive Discount: Intel Core i9 14th Gen + RTX 4080 Super + 34\" Curved 4K Display with ₹45,000 Instant Savings.",
+          order: 2
+        },
+        {
+          id: "2",
+          badge: "BUSINESS SPECIAL",
+          offerTitle: "Epson EcoTank Heavy-Duty Print Fleet",
+          image: "/assets/epson_printer.webp",
+          description: "Get Flat ₹4,500 Cashback + 2 Free Extra Genuine Ink Bottle Sets with every Epson EcoTank Duplex All-in-One.",
+          order: 3
+        },
+        {
+          id: "3",
+          badge: "HARDWARE COMBO",
+          offerTitle: "Z790 Workstation Board + DDR5 Fast RAM",
+          image: "/assets/motherboard.webp",
+          description: "Save 18% on High-Speed Z790 PCIe 5.0 Motherboard + 32GB 6000MHz DDR5 Memory Combo Kit with Free Assembly.",
+          order: 4
+        },
+        {
+          id: "4",
+          badge: "LIMITED FLASH SALE",
+          offerTitle: "AeroCNC Solid Aluminum Mechanical Keyboard",
+          image: "/assets/mech_keyboard.webp",
+          description: "Flash Deal: 30% Flat Off on Anodized CNC Mechanical Keyboards with Free Braided Aviator Coiled Cable.",
+          order: 5
+        }
+      ];
+
+      // In-Memory State
+      let gallerySlides = [];
+      let offers = [];
+      let enquiries = [];
+      let activeTab = "gallery";
+      let currentGalleryFilter = "ALL";
+      let currentEnquiryFilter = "ALL";
+      let currentEnquirySearch = "";
+
+      let currentGalleryImage = "/assets/gpu_card.webp";
+      let currentOfferImage = "/assets/pro_monitor.webp";
+
+      // ---------------- UTILS & TOASTS ----------------
+      function showToast(msg) {
+        const toast = document.getElementById("toastNotification");
+        const toastMsg = document.getElementById("toastMessage");
+        if (!toast || !toastMsg) return;
+        toastMsg.textContent = msg;
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("hidden"), 4000);
+      }
+
+      function showError(msg) {
+        const errBanner = document.getElementById("errorNotification");
+        const errMsg = document.getElementById("errorMessage");
+        if (!errBanner || !errMsg) return;
+        errMsg.textContent = msg;
+        errBanner.classList.remove("hidden");
+        setTimeout(() => errBanner.classList.add("hidden"), 4000);
+      }
+
+      function compressImageFile(file, maxWidth = 1200, maxHeight = 900, quality = 0.88) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              let w = img.width;
+              let h = img.height;
+              if (w > maxWidth || h > maxHeight) {
+                const ratio = Math.min(maxWidth / w, maxHeight / h);
+                w = Math.round(w * ratio);
+                h = Math.round(h * ratio);
+              }
+              const canvas = document.createElement("canvas");
+              canvas.width = w;
+              canvas.height = h;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, w, h);
+              const dataUrl = canvas.toDataURL("image/webp", quality);
+              resolve(dataUrl);
+            };
+            img.onerror = () => resolve(e.target.result);
+            img.src = e.target.result;
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // ---------------- AUTHENTICATION ----------------
+      function checkAuth() {
+        const isAuth = localStorage.getItem(AUTH_KEY) === "true" || sessionStorage.getItem(AUTH_KEY) === "true";
+        const authScreen = document.getElementById("authScreen");
+        const adminDashboard = document.getElementById("adminDashboard");
+
+        // Prefill remembered admin id if any
+        const savedId = localStorage.getItem("gce_saved_admin_id");
+        const idInput = document.getElementById("adminIdInput");
+        if (idInput && savedId) {
+          idInput.value = savedId;
+        }
+
+        if (isAuth) {
+          authScreen.classList.add("hidden");
+          adminDashboard.classList.remove("hidden");
+          loadData();
+          initFirestoreSync();
+        } else {
+          authScreen.classList.remove("hidden");
+          adminDashboard.classList.add("hidden");
+        }
+        lucide.createIcons();
+      }
+
+      document.getElementById("loginForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const enteredId = (document.getElementById("adminIdInput")?.value || "").trim().toUpperCase();
+        const enteredPass = (document.getElementById("passcodeInput")?.value || "").trim();
+        const rememberMe = document.getElementById("rememberMeCheckbox")?.checked ?? true;
+
+        const isValidId = enteredId === "GCEADMIN" || enteredId === "ADMIN" || enteredId === "GLOBAL";
+        const isValidPass = enteredPass === "GCEluru01" || enteredPass === "gce2026" || enteredPass === "admin123" || enteredPass === "admin@global123";
+
+        if (isValidId && isValidPass) {
+          if (rememberMe) {
+            localStorage.setItem(AUTH_KEY, "true");
+            localStorage.setItem("gce_saved_admin_id", enteredId);
+          } else {
+            sessionStorage.setItem(AUTH_KEY, "true");
+            localStorage.removeItem(AUTH_KEY);
+          }
+          document.getElementById("loginError").classList.add("hidden");
+          checkAuth();
+          showToast("Welcome back, " + enteredId + "! Control Desk Unlocked.");
+        } else {
+          document.getElementById("loginError").classList.remove("hidden");
+        }
+      });
+
+      document.getElementById("togglePasswordBtn").addEventListener("click", () => {
+        const pinInput = document.getElementById("passcodeInput");
+        pinInput.type = pinInput.type === "password" ? "text" : "password";
+      });
+
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem(AUTH_KEY);
+        sessionStorage.removeItem(AUTH_KEY);
+        checkAuth();
+      });
+
+      // ---------------- TAB SWITCHING ----------------
+      const tabGalleryBtn = document.getElementById("tabGalleryBtn");
+      const tabOffersBtn = document.getElementById("tabOffersBtn");
+      const tabEnquiriesBtn = document.getElementById("tabEnquiriesBtn");
+
+      const galleryTabContent = document.getElementById("galleryTabContent");
+      const offersTabContent = document.getElementById("offersTabContent");
+      const enquiriesTabContent = document.getElementById("enquiriesTabContent");
+
+      function switchTab(tab) {
+        activeTab = tab;
+        const activeClass = "tab-btn inline-flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs font-bold transition-all bg-gradient-to-r from-[#F15A24] to-[#D94814] text-white shadow-sm cursor-pointer";
+        const inactiveClass = "tab-btn inline-flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer";
+
+        const tabTeamBtn = document.getElementById("tabTeamBtn");
+        const teamTabContent = document.getElementById("teamTabContent");
+
+        tabGalleryBtn.className = tab === "gallery" ? activeClass : inactiveClass;
+        tabOffersBtn.className = tab === "offers" ? activeClass : inactiveClass;
+        tabEnquiriesBtn.className = tab === "enquiries" ? activeClass : inactiveClass;
+        if (tabTeamBtn) tabTeamBtn.className = tab === "team" ? activeClass : inactiveClass;
+
+        galleryTabContent.classList.toggle("hidden", tab !== "gallery");
+        offersTabContent.classList.toggle("hidden", tab !== "offers");
+        enquiriesTabContent.classList.toggle("hidden", tab !== "enquiries");
+        if (teamTabContent) teamTabContent.classList.toggle("hidden", tab !== "team");
+        
+        if (tab === "team") renderTeamMembers();
+
+        lucide.createIcons();
+      }
+
+      tabGalleryBtn.addEventListener("click", () => switchTab("gallery"));
+      tabOffersBtn.addEventListener("click", () => switchTab("offers"));
+      tabEnquiriesBtn.addEventListener("click", () => switchTab("enquiries"));
+      const tabTeamBtn = document.getElementById("tabTeamBtn");
+      if (tabTeamBtn) tabTeamBtn.addEventListener("click", () => switchTab("team"));
+
+      const clearBestEmpBtn = document.getElementById("clearBestEmployeeBtn");
+      if (clearBestEmpBtn) clearBestEmpBtn.addEventListener("click", () => window.setEmployeeOfTheMonth(null));
+
+      // ---------------- DATA LOAD & FIRESTORE SYNC ----------------
+      function loadData() {
+        const savedGallery = localStorage.getItem(GALLERY_KEY);
+        if (savedGallery) {
+          try {
+            gallerySlides = JSON.parse(savedGallery);
+          } catch(e) {
+            gallerySlides = DEFAULT_GALLERY_SLIDES;
+          }
+        } else {
+          gallerySlides = DEFAULT_GALLERY_SLIDES;
+        }
+
+        const savedOffers = localStorage.getItem(OFFERS_KEY);
+        if (savedOffers) {
+          try {
+            offers = JSON.parse(savedOffers);
+          } catch(e) {
+            offers = DEFAULT_OFFERS;
+          }
+        } else {
+          offers = DEFAULT_OFFERS;
+        }
+
+        const savedEnquiries = localStorage.getItem(ENQUIRIES_KEY);
+        if (savedEnquiries) {
+          try {
+            enquiries = JSON.parse(savedEnquiries);
+          } catch(e) {
+            enquiries = [];
+          }
+        }
+
+        const savedTeam = localStorage.getItem(TEAM_KEY);
+        if (savedTeam) {
+          try {
+            teamMembers = JSON.parse(savedTeam);
+          } catch(e) {
+            teamMembers = DEFAULT_TEAM_MEMBERS;
+          }
+        } else {
+          teamMembers = DEFAULT_TEAM_MEMBERS;
+        }
+
+        renderGallerySlides();
+        renderOffers();
+        renderEnquiries();
+        renderTeamMembers();
+      }
+
+      
+      // ---------------- 4. TEAM SPECIALISTS & EMPLOYEE HONORS ----------------
+      const TEAM_KEY = "gc_team_members_v2";
+      const DEFAULT_TEAM_MEMBERS = [
+        {
+          id: "team-kamal",
+          name: "Kamal",
+          department: "Custom PC & Gaming Division",
+          image: "/assets/Kamal.webp",
+          tag: "PC ARCHITECTURE",
+          badgeType: "gold",
+          badgeTitle: "EMPLOYEE OF THE MONTH",
+          bio: "Recognized for high-end custom liquid-cooled PC assemblies & 5-star customer ratings.",
+          order: 0
+        },
+        {
+          id: "team-krupamani",
+          name: "Krupamani",
+          department: "Laptop & Hardware Service Lab",
+          image: "/assets/Krupamani.webp",
+          tag: "CHIP-LEVEL LAB",
+          badgeType: "emerald",
+          badgeTitle: "SERVICE LAB STAR",
+          bio: "Certified micro-soldering and complex motherboard diagnosis specialist.",
+          order: 1
+        },
+        {
+          id: "team-phani",
+          name: "Phani",
+          department: "Commercial & B2B Sales",
+          image: "/assets/Phani.webp",
+          tag: "ENTERPRISE FLEETS",
+          badgeType: "cyan",
+          badgeTitle: "BEST CALLS & SUPPORT",
+          bio: "Top-rated consultant for enterprise workstations and client relationship excellence.",
+          order: 2
+        },
+        {
+          id: "team-srinu",
+          name: "Srinu",
+          department: "Surveillance & Infrastructure",
+          image: "/assets/Srinu.webp",
+          tag: "SECURITY & CCTV",
+          badgeType: "purple",
+          badgeTitle: "MASTER ARCHITECT",
+          bio: "Commercial IP surveillance and corporate networking deployment lead.",
+          order: 3
+        }
+      ];
+
+      let teamMembers = [];
+      let currentTeamImage = "/assets/Kamal.webp";
+
+      // Form Elements
+      const teamMemberForm = document.getElementById("teamMemberForm");
+      const teamEditId = document.getElementById("teamEditId");
+      const teamFormHeading = document.getElementById("teamFormHeading");
+      const cancelTeamEditBtn = document.getElementById("cancelTeamEditBtn");
+      const addNewTeamMemberBtn = document.getElementById("addNewTeamMemberBtn");
+      const seedDefaultTeamBtn = document.getElementById("seedDefaultTeamBtn");
+
+      const teamFileInput = document.getElementById("teamFileInput");
+      const teamImageDropArea = document.getElementById("teamImageDropArea");
+      const teamImagePlaceholder = document.getElementById("teamImagePlaceholder");
+      const teamImagePreviewWrapper = document.getElementById("teamImagePreviewWrapper");
+      const teamImagePreviewImg = document.getElementById("teamImagePreviewImg");
+      const removeTeamImageBtn = document.getElementById("removeTeamImageBtn");
+
+      const teamNameInput = document.getElementById("teamNameInput");
+      const teamDeptInput = document.getElementById("teamDeptInput");
+      const teamTagInput = document.getElementById("teamTagInput");
+      const teamBadgeTypeSelect = document.getElementById("teamBadgeTypeSelect");
+      const teamBadgeTitleInput = document.getElementById("teamBadgeTitleInput");
+      const teamBioInput = document.getElementById("teamBioInput");
+      const teamSubmitBtn = document.getElementById("teamSubmitBtn");
+      const teamSubmitBtnText = document.getElementById("teamSubmitBtnText");
+
+      // Live Preview Elements
+      const liveTeamCardContainer = document.getElementById("liveTeamCardContainer");
+      const liveTeamTopBar = document.getElementById("liveTeamTopBar");
+      const liveTeamBadgePill = document.getElementById("liveTeamBadgePill");
+      const liveTeamIconWrapper = document.getElementById("liveTeamIconWrapper");
+      const liveTeamAvatarWrapper = document.getElementById("liveTeamAvatarWrapper");
+      const liveTeamImg = document.getElementById("liveTeamImg");
+      const liveTeamStatusDot = document.getElementById("liveTeamStatusDot");
+      const liveTeamName = document.getElementById("liveTeamName");
+      const liveTeamDept = document.getElementById("liveTeamDept");
+      const liveTeamBio = document.getElementById("liveTeamBio");
+
+      const adminTeamGrid = document.getElementById("adminTeamGrid");
+      const teamListCount = document.getElementById("teamListCount");
+
+      function updateLiveTeamPreview() {
+        if (!liveTeamName) return;
+        const name = teamNameInput.value.trim() || "Staff Specialist";
+        const dept = teamDeptInput.value.trim() || "Showroom Hardware Department";
+        const tag = (teamTagInput.value.trim() || "SHOWROOM SPECIALIST").toUpperCase();
+        const badgeType = teamBadgeTypeSelect.value;
+        const badgeTitle = teamBadgeTitleInput.value.trim().toUpperCase() || getBadgeDefaultTitle(badgeType);
+        const bio = teamBioInput.value.trim();
+
+        liveTeamName.textContent = name;
+        liveTeamDept.textContent = dept;
+        liveTeamImg.src = currentTeamImage || "/assets/Kamal.webp";
+
+        if (bio) {
+          liveTeamBio.textContent = `"${bio}"`;
+          liveTeamBio.classList.remove("hidden");
+        } else {
+          liveTeamBio.classList.add("hidden");
+        }
+
+        // Apply theme styling to live preview card
+        liveTeamTopBar.className = "hidden absolute top-0 inset-x-0 h-1";
+        liveTeamAvatarWrapper.className = "w-18 h-18 rounded-full overflow-hidden relative flex-shrink-0 border-2 bg-slate-100";
+        liveTeamStatusDot.innerHTML = "";
+
+        if (badgeType === "gold") {
+          liveTeamCardContainer.className = "rounded-2xl p-5 border-2 border-amber-400 shadow-xl transition-all flex flex-col justify-between text-left relative overflow-hidden bg-gradient-to-b from-[#FFFDF0] via-[#FFFBEB] to-[#FEF3C7] ring-2 ring-amber-300/70";
+          liveTeamTopBar.className = "absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 animate-pulse";
+          liveTeamBadgePill.className = "inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-mono text-[0.60rem] font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase shadow-xs";
+          liveTeamBadgePill.innerHTML = '<i data-lucide="crown" class="w-3 h-3 text-slate-950 fill-slate-950"></i><span>' + (badgeTitle || "EMPLOYEE OF THE MONTH") + '</span>';
+          liveTeamIconWrapper.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 text-amber-500 animate-bounce"></i>';
+          liveTeamAvatarWrapper.className = "w-18 h-18 rounded-full overflow-hidden relative flex-shrink-0 ring-4 ring-amber-400 ring-offset-2 border-2 border-amber-500 bg-amber-50 shadow-md";
+          liveTeamStatusDot.className = "absolute bottom-1 right-1 w-4 h-4 bg-amber-500 rounded-full border-2 border-white shadow-sm flex items-center justify-center";
+          liveTeamStatusDot.innerHTML = '<i data-lucide="star" class="w-2.5 h-2.5 text-white fill-white"></i>';
+        } else if (badgeType === "cyan") {
+          liveTeamCardContainer.className = "rounded-2xl p-5 border-2 border-sky-400 shadow-lg transition-all flex flex-col justify-between text-left relative overflow-hidden bg-gradient-to-b from-[#F0F9FF] via-[#E0F2FE] to-[#BAE6FD] ring-2 ring-sky-300/70";
+          liveTeamTopBar.className = "absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-sky-400 via-cyan-300 to-blue-500";
+          liveTeamBadgePill.className = "inline-flex items-center gap-1.5 bg-gradient-to-r from-sky-500 to-cyan-600 text-white font-mono text-[0.60rem] font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase shadow-xs";
+          liveTeamBadgePill.innerHTML = '<i data-lucide="phone-call" class="w-3 h-3 text-white"></i><span>' + (badgeTitle || "BEST CALLS & SUPPORT") + '</span>';
+          liveTeamIconWrapper.innerHTML = '<i data-lucide="phone-call" class="w-4 h-4 text-sky-600"></i>';
+          liveTeamAvatarWrapper.className = "w-18 h-18 rounded-full overflow-hidden relative flex-shrink-0 ring-4 ring-sky-400 ring-offset-2 border-2 border-sky-500 bg-sky-50 shadow-md";
+          liveTeamStatusDot.className = "absolute bottom-1 right-1 w-4 h-4 bg-sky-500 rounded-full border-2 border-white shadow-sm flex items-center justify-center";
+          liveTeamStatusDot.innerHTML = '<i data-lucide="thumbs-up" class="w-2.5 h-2.5 text-white fill-white"></i>';
+        } else if (badgeType === "purple") {
+          liveTeamCardContainer.className = "rounded-2xl p-5 border-2 border-purple-400 shadow-lg transition-all flex flex-col justify-between text-left relative overflow-hidden bg-gradient-to-b from-[#FAF5FF] via-[#F3E8FF] to-[#E9D5FF] ring-2 ring-purple-300/70";
+          liveTeamTopBar.className = "absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-purple-400 via-fuchsia-300 to-indigo-500";
+          liveTeamBadgePill.className = "inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-mono text-[0.60rem] font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase shadow-xs";
+          liveTeamBadgePill.innerHTML = '<i data-lucide="zap" class="w-3 h-3 text-amber-300 fill-amber-300"></i><span>' + (badgeTitle || "MASTER ARCHITECT") + '</span>';
+          liveTeamIconWrapper.innerHTML = '<i data-lucide="zap" class="w-4 h-4 text-purple-600"></i>';
+          liveTeamAvatarWrapper.className = "w-18 h-18 rounded-full overflow-hidden relative flex-shrink-0 ring-4 ring-purple-400 ring-offset-2 border-2 border-purple-500 bg-purple-50 shadow-md";
+        } else if (badgeType === "emerald") {
+          liveTeamCardContainer.className = "rounded-2xl p-5 border-2 border-emerald-400 shadow-lg transition-all flex flex-col justify-between text-left relative overflow-hidden bg-gradient-to-b from-[#F0FDF4] via-[#DCFCE7] to-[#BBF7D0] ring-2 ring-emerald-300/70";
+          liveTeamTopBar.className = "absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-600";
+          liveTeamBadgePill.className = "inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-mono text-[0.60rem] font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase shadow-xs";
+          liveTeamBadgePill.innerHTML = '<i data-lucide="wrench" class="w-3 h-3 text-white"></i><span>' + (badgeTitle || "SERVICE LAB STAR") + '</span>';
+          liveTeamIconWrapper.innerHTML = '<i data-lucide="award" class="w-4 h-4 text-emerald-600"></i>';
+          liveTeamAvatarWrapper.className = "w-18 h-18 rounded-full overflow-hidden relative flex-shrink-0 ring-4 ring-emerald-400 ring-offset-2 border-2 border-emerald-500 bg-emerald-50 shadow-md";
+        } else if (badgeType === "custom") {
+          liveTeamCardContainer.className = "rounded-2xl p-5 border-2 border-orange-400 shadow-lg transition-all flex flex-col justify-between text-left relative overflow-hidden bg-gradient-to-b from-[#FFF7ED] via-[#FFEDD5] to-[#FED7AA] ring-2 ring-orange-300/70";
+          liveTeamTopBar.className = "absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#F15A24] via-amber-400 to-[#F15A24]";
+          liveTeamBadgePill.className = "inline-flex items-center gap-1.5 bg-gradient-to-r from-[#F15A24] to-amber-500 text-white font-mono text-[0.60rem] font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase shadow-xs";
+          liveTeamBadgePill.innerHTML = '<i data-lucide="flame" class="w-3 h-3 text-yellow-300 fill-yellow-300"></i><span>' + (badgeTitle || "SPECIAL HONOR") + '</span>';
+          liveTeamIconWrapper.innerHTML = '<i data-lucide="award" class="w-4 h-4 text-[#F15A24]"></i>';
+          liveTeamAvatarWrapper.className = "w-18 h-18 rounded-full overflow-hidden relative flex-shrink-0 ring-4 ring-orange-400 ring-offset-2 border-2 border-orange-500 bg-orange-50 shadow-md";
+        } else {
+          liveTeamCardContainer.className = "rounded-2xl p-5 border border-slate-200 shadow-sm transition-all flex flex-col justify-between text-left relative overflow-hidden bg-white";
+          liveTeamBadgePill.className = "font-mono text-[0.60rem] font-bold px-2 py-0.5 rounded uppercase bg-slate-100 text-slate-600";
+          liveTeamBadgePill.textContent = tag;
+          liveTeamIconWrapper.innerHTML = '<i data-lucide="cpu" class="w-4 h-4 text-slate-400"></i>';
+          liveTeamAvatarWrapper.className = "w-18 h-18 rounded-full overflow-hidden relative flex-shrink-0 border-2 border-orange-300 bg-slate-100";
+          liveTeamStatusDot.className = "absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white shadow-sm";
+        }
+
+        lucide.createIcons();
+      }
+
+      function getBadgeDefaultTitle(type) {
+        switch (type) {
+          case "gold": return "EMPLOYEE OF THE MONTH";
+          case "cyan": return "BEST CALLS & SUPPORT";
+          case "purple": return "MASTER ARCHITECT";
+          case "emerald": return "SERVICE LAB STAR";
+          case "custom": return "SPECIAL HONOR";
+          default: return "";
+        }
+      }
+
+      teamBadgeTypeSelect.addEventListener("change", () => {
+        const t = teamBadgeTypeSelect.value;
+        if (!teamBadgeTitleInput.value || ["EMPLOYEE OF THE MONTH", "BEST CALLS & SUPPORT", "MASTER ARCHITECT", "SERVICE LAB STAR", "SPECIAL HONOR"].includes(teamBadgeTitleInput.value.toUpperCase())) {
+          teamBadgeTitleInput.value = getBadgeDefaultTitle(t);
+        }
+        updateLiveTeamPreview();
+      });
+
+      // Presets
+      document.querySelectorAll(".team-preset-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentTeamImage = btn.getAttribute("data-url");
+          teamImagePreviewImg.src = currentTeamImage;
+          teamImagePlaceholder.classList.add("hidden");
+          teamImagePreviewWrapper.classList.remove("hidden");
+          updateLiveTeamPreview();
+        });
+      });
+
+      // File upload
+      teamImageDropArea.addEventListener("click", (e) => {
+        if (!e.target.closest("#removeTeamImageBtn")) {
+          teamFileInput.click();
+        }
+      });
+
+      teamFileInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          try {
+            const compressed = await compressImageFile(file, 400, 400, 0.90);
+            currentTeamImage = compressed;
+            teamImagePreviewImg.src = currentTeamImage;
+            teamImagePlaceholder.classList.add("hidden");
+            teamImagePreviewWrapper.classList.remove("hidden");
+            updateLiveTeamPreview();
+            showToast("Employee photo loaded & compressed!");
+          } catch(err) {
+            showError("Failed to load employee photo.");
+          }
+        }
+      });
+
+      removeTeamImageBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        currentTeamImage = "";
+        teamFileInput.value = "";
+        teamImagePreviewWrapper.classList.add("hidden");
+        teamImagePlaceholder.classList.remove("hidden");
+        updateLiveTeamPreview();
+      });
+
+      [teamNameInput, teamDeptInput, teamTagInput, teamBadgeTitleInput, teamBioInput].forEach(inp => {
+        inp.addEventListener("input", updateLiveTeamPreview);
+      });
+
+      teamMemberForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const editId = teamEditId.value;
+        const name = teamNameInput.value.trim();
+        const department = teamDeptInput.value.trim();
+        const tag = teamTagInput.value.trim().toUpperCase() || "SHOWROOM SPECIALIST";
+        const badgeType = teamBadgeTypeSelect.value || "none";
+        const badgeTitle = teamBadgeTitleInput.value.trim().toUpperCase() || getBadgeDefaultTitle(badgeType);
+        const bio = teamBioInput.value.trim();
+        const image = currentTeamImage || "/assets/Kamal.webp";
+
+        if (!name || !department) {
+          showError("Please enter employee name and designation.");
+          return;
+        }
+
+        teamSubmitBtn.disabled = true;
+        teamSubmitBtnText.textContent = "Saving...";
+
+        const targetId = editId || ("team_" + Date.now());
+        const order = editId ? (teamMembers.find(m => m.id === editId)?.order ?? 0) : teamMembers.length;
+
+        const memberData = {
+          id: targetId,
+          name,
+          department,
+          tag,
+          image,
+          badgeType,
+          badgeTitle,
+          bio,
+          order,
+          updatedAt: new Date().toISOString()
+        };
+
+        // If this member is awarded gold (Employee of the Month), remove gold from others
+        if (badgeType === "gold") {
+          teamMembers.forEach(m => {
+            if (m.id !== targetId && m.badgeType === "gold") {
+              m.badgeType = "none";
+              m.badgeTitle = "";
+              if (db) {
+                db.collection("team_members").doc(m.id).set({
+                  badgeType: "none",
+                  badgeTitle: "",
+                  updatedAt: new Date().toISOString()
+                }, { merge: true }).catch(() => {});
+              }
+            }
+          });
+          localStorage.setItem("gc_best_employee_id", targetId);
+          if (db) {
+            db.collection("team_settings").doc("employee_of_the_month").set({
+              employeeId: targetId,
+              employeeName: name,
+              updatedAt: new Date().toISOString()
+            }).catch(() => {});
+          }
+        } else {
+          // If not gold, check if another member is gold
+          const currentGold = teamMembers.find(m => m.id !== targetId && m.badgeType === "gold");
+          if (currentGold) {
+            if (db) {
+              db.collection("team_settings").doc("employee_of_the_month").set({
+                employeeId: currentGold.id,
+                employeeName: currentGold.name,
+                updatedAt: new Date().toISOString()
+              }).catch(() => {});
+            }
+          } else {
+            if (db) {
+              db.collection("team_settings").doc("employee_of_the_month").delete().catch(() => {});
+            }
+          }
+        }
+
+        try {
+          if (db) {
+            await db.collection("team_members").doc(targetId).set(memberData, { merge: true });
+          }
+        } catch(err) {
+          console.warn("Firestore save fallback to local:", err);
+        }
+
+        const idx = teamMembers.findIndex(m => m.id === targetId);
+        if (idx >= 0) {
+          teamMembers[idx] = memberData;
+        } else {
+          teamMembers.push(memberData);
+        }
+        teamMembers.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        localStorage.setItem(TEAM_KEY, JSON.stringify(teamMembers));
+
+        resetTeamForm();
+        renderTeamMembers();
+        showToast(editId ? `✅ Profile of ${name} updated and synced!` : `🎉 New team member ${name} added!`);
+        teamSubmitBtn.disabled = false;
+        teamSubmitBtnText.textContent = "Save Team Member";
+      });
+
+      function resetTeamForm() {
+        teamEditId.value = "";
+        teamMemberForm.reset();
+        currentTeamImage = "/assets/Kamal.webp";
+        teamImagePreviewWrapper.classList.add("hidden");
+        teamImagePlaceholder.classList.remove("hidden");
+        teamFormHeading.textContent = "Add / Edit Team Member";
+        cancelTeamEditBtn.classList.add("hidden");
+        teamSubmitBtnText.textContent = "Save Team Member";
+        teamBadgeTypeSelect.value = "none";
+        teamBadgeTitleInput.value = "";
+        updateLiveTeamPreview();
+      }
+
+      cancelTeamEditBtn.addEventListener("click", resetTeamForm);
+      if (addNewTeamMemberBtn) {
+        addNewTeamMemberBtn.addEventListener("click", () => {
+          resetTeamForm();
+          teamMemberForm.scrollIntoView({ behavior: "smooth" });
+          teamNameInput.focus();
+        });
+      }
+
+      function renderTeamMembers() {
+        if (!adminTeamGrid) return;
+        teamListCount.textContent = teamMembers.length;
+
+        adminTeamGrid.innerHTML = "";
+        if (teamMembers.length === 0) {
+          adminTeamGrid.innerHTML = `
+            <div class="col-span-full py-12 text-center text-slate-400">
+              <i data-lucide="users" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+              <p class="text-sm font-semibold text-slate-600">No team members added yet.</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        teamMembers.forEach((member, idx) => {
+          const isGold = member.badgeType === "gold";
+          const isCyan = member.badgeType === "cyan";
+          const isPurple = member.badgeType === "purple";
+          const isEmerald = member.badgeType === "emerald";
+          const isCustom = member.badgeType === "custom";
+
+          let cardBorder = "bg-slate-900 border-slate-800 hover:border-slate-700";
+          let badgePillHtml = `<span class="font-mono text-[0.62rem] font-bold px-2 py-0.5 rounded uppercase bg-slate-800 text-slate-400">${member.tag || "STAFF"}</span>`;
+          let avatarBorder = "border-2 border-slate-700";
+
+          if (isGold) {
+            cardBorder = "bg-gradient-to-b from-slate-900 via-amber-950/40 to-slate-900 border-2 border-amber-400 shadow-xl shadow-amber-500/15";
+            badgePillHtml = `<span class="font-mono text-[0.62rem] font-black px-2 py-0.5 rounded-full uppercase bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 flex items-center gap-1"><i data-lucide="crown" class="w-3 h-3 fill-slate-950"></i>${member.badgeTitle || "EMPLOYEE OF THE MONTH"}</span>`;
+            avatarBorder = "ring-4 ring-amber-400 border-2 border-amber-500 shadow-md";
+          } else if (isCyan) {
+            cardBorder = "bg-gradient-to-b from-slate-900 via-sky-950/40 to-slate-900 border-2 border-sky-400 shadow-xl shadow-sky-500/15";
+            badgePillHtml = `<span class="font-mono text-[0.62rem] font-black px-2 py-0.5 rounded-full uppercase bg-gradient-to-r from-sky-400 to-cyan-400 text-slate-950 flex items-center gap-1"><i data-lucide="phone-call" class="w-3 h-3"></i>${member.badgeTitle || "BEST CALLS"}</span>`;
+            avatarBorder = "ring-4 ring-sky-400 border-2 border-sky-500 shadow-md";
+          } else if (isPurple) {
+            cardBorder = "bg-gradient-to-b from-slate-900 via-purple-950/40 to-slate-900 border-2 border-purple-400 shadow-xl shadow-purple-500/15";
+            badgePillHtml = `<span class="font-mono text-[0.62rem] font-black px-2 py-0.5 rounded-full uppercase bg-gradient-to-r from-purple-500 to-indigo-500 text-white flex items-center gap-1"><i data-lucide="zap" class="w-3 h-3 text-amber-300 fill-amber-300"></i>${member.badgeTitle || "MASTER ARCHITECT"}</span>`;
+            avatarBorder = "ring-4 ring-purple-400 border-2 border-purple-500 shadow-md";
+          } else if (isEmerald) {
+            cardBorder = "bg-gradient-to-b from-slate-900 via-emerald-950/40 to-slate-900 border-2 border-emerald-400 shadow-xl shadow-emerald-500/15";
+            badgePillHtml = `<span class="font-mono text-[0.62rem] font-black px-2 py-0.5 rounded-full uppercase bg-gradient-to-r from-emerald-500 to-teal-500 text-white flex items-center gap-1"><i data-lucide="wrench" class="w-3 h-3"></i>${member.badgeTitle || "SERVICE STAR"}</span>`;
+            avatarBorder = "ring-4 ring-emerald-400 border-2 border-emerald-500 shadow-md";
+          } else if (isCustom) {
+            cardBorder = "bg-gradient-to-b from-slate-900 via-orange-950/40 to-slate-900 border-2 border-orange-400 shadow-xl shadow-orange-500/15";
+            badgePillHtml = `<span class="font-mono text-[0.62rem] font-black px-2 py-0.5 rounded-full uppercase bg-gradient-to-r from-[#F15A24] to-amber-500 text-white flex items-center gap-1"><i data-lucide="flame" class="w-3 h-3"></i>${member.badgeTitle || "HONOR"}</span>`;
+            avatarBorder = "ring-4 ring-orange-400 border-2 border-orange-500 shadow-md";
+          }
+
+          const card = document.createElement("div");
+          card.className = `rounded-2xl p-5 border transition-all flex flex-col justify-between text-left relative overflow-hidden ${cardBorder}`;
+
+          card.innerHTML = `
+            ${isGold ? '<div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500"></div>' : ''}
+            
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                ${badgePillHtml}
+                <div class="flex items-center gap-1">
+                  <span class="font-mono text-[0.60rem] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">#${idx + 1}</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3.5 mb-3">
+                <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 ${avatarBorder}">
+                  <img src="${member.image}" alt="${member.name}" class="w-full h-full object-cover" onerror="if(!this.dataset.retried){this.dataset.retried=1;this.src='https://www.globalcomputerseluru.com/assets/'+this.src.split('/').pop();}">
+                </div>
+                <div>
+                  <h4 class="font-heading font-bold text-base ${isGold ? 'text-amber-300 font-black' : 'text-white'}">
+                    ${member.name}
+                  </h4>
+                  <span class="text-xs text-slate-400 block mt-0.5 font-mono leading-tight">
+                    ${member.department}
+                  </span>
+                </div>
+              </div>
+
+              ${member.bio ? `<p class="text-xs text-slate-300 italic bg-black/40 p-2 rounded-lg border border-white/5 mb-3">"${member.bio}"</p>` : ''}
+            </div>
+
+            <!-- Card Bottom Controls -->
+            <div class="pt-3 border-t border-slate-800 space-y-2">
+              
+              <!-- Quick Badge Selector -->
+              <div class="flex items-center justify-between gap-1.5 text-xs">
+                <span class="text-[0.66rem] font-mono text-slate-400">Honor:</span>
+                <select class="member-quick-badge bg-slate-800 border border-slate-700 text-slate-200 text-[0.68rem] font-bold rounded-lg px-2 py-1 outline-none cursor-pointer flex-1" data-id="${member.id}">
+                  <option value="none" ${member.badgeType === "none" || !member.badgeType ? "selected" : ""}>⚪ Standard Member</option>
+                  <option value="gold" ${member.badgeType === "gold" ? "selected" : ""}>🏆 Gold: Emp of the Month</option>
+                  <option value="cyan" ${member.badgeType === "cyan" ? "selected" : ""}>📞 Cyan: Best Calls & Support</option>
+                  <option value="purple" ${member.badgeType === "purple" ? "selected" : ""}>⚡ Purple: Master Architect</option>
+                  <option value="emerald" ${member.badgeType === "emerald" ? "selected" : ""}>🛠️ Emerald: Service Star</option>
+                  <option value="custom" ${member.badgeType === "custom" ? "selected" : ""}>🎖️ Custom Honor Badge</option>
+                </select>
+              </div>
+
+              <div class="flex items-center justify-between pt-1">
+                <!-- Reorder buttons -->
+                <div class="flex items-center gap-1">
+                  <button type="button" class="move-team-up-btn p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 cursor-pointer" data-id="${member.id}" ${idx === 0 ? "disabled" : ""}>
+                    <i data-lucide="chevron-up" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <button type="button" class="move-team-down-btn p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 cursor-pointer" data-id="${member.id}" ${idx === teamMembers.length - 1 ? "disabled" : ""}>
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+
+                <!-- Edit & Delete -->
+                <div class="flex items-center gap-1.5">
+                  <button type="button" class="edit-team-btn px-2.5 py-1 bg-orange-950/60 hover:bg-orange-900/80 border border-orange-700/60 text-orange-300 font-bold text-xs rounded-lg inline-flex items-center gap-1 cursor-pointer" data-id="${member.id}">
+                    <i data-lucide="edit-3" class="w-3 h-3"></i>
+                    <span>Edit</span>
+                  </button>
+                  <button type="button" class="del-team-btn p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-950/40 rounded-lg cursor-pointer" data-id="${member.id}" data-name="${member.name}">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          `;
+
+          adminTeamGrid.appendChild(card);
+        });
+
+        // Attach event listeners
+        document.querySelectorAll(".edit-team-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const id = btn.getAttribute("data-id");
+            const member = teamMembers.find(m => m.id === id);
+            if (!member) return;
+
+            teamEditId.value = member.id;
+            teamNameInput.value = member.name || "";
+            teamDeptInput.value = member.department || "";
+            teamTagInput.value = member.tag || "SHOWROOM SPECIALIST";
+            teamBadgeTypeSelect.value = member.badgeType || "none";
+            teamBadgeTitleInput.value = member.badgeTitle || getBadgeDefaultTitle(member.badgeType || "none");
+            teamBioInput.value = member.bio || "";
+            currentTeamImage = member.image || "/assets/Kamal.webp";
+
+            teamImagePreviewImg.src = currentTeamImage;
+            teamImagePlaceholder.classList.add("hidden");
+            teamImagePreviewWrapper.classList.remove("hidden");
+
+            teamFormHeading.textContent = "Edit Team Member: " + member.name;
+            cancelTeamEditBtn.classList.remove("hidden");
+            teamSubmitBtnText.textContent = "Update Profile";
+
+            updateLiveTeamPreview();
+            teamMemberForm.scrollIntoView({ behavior: "smooth" });
+          });
+        });
+
+        document.querySelectorAll(".del-team-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            const name = btn.getAttribute("data-name");
+            if (confirm(`Delete team specialist "${name}"?`)) {
+              try {
+                if (db) {
+                  await db.collection("team_members").doc(id).delete();
+                }
+              } catch(e) {}
+              teamMembers = teamMembers.filter(m => m.id !== id);
+              localStorage.setItem(TEAM_KEY, JSON.stringify(teamMembers));
+              renderTeamMembers();
+              showToast(`Member ${name} removed.`);
+            }
+          });
+        });
+
+        document.querySelectorAll(".member-quick-badge").forEach(sel => {
+          sel.addEventListener("change", async (e) => {
+            const id = sel.getAttribute("data-id");
+            const newBadgeType = e.target.value;
+            const newBadgeTitle = getBadgeDefaultTitle(newBadgeType);
+
+            const member = teamMembers.find(m => m.id === id);
+            if (member) {
+              if (newBadgeType === "gold") {
+                // Clear gold from any other team members
+                teamMembers.forEach(m => {
+                  if (m.id !== id && m.badgeType === "gold") {
+                    m.badgeType = "none";
+                    m.badgeTitle = "";
+                    if (db) {
+                      db.collection("team_members").doc(m.id).set({
+                        badgeType: "none",
+                        badgeTitle: "",
+                        updatedAt: new Date().toISOString()
+                      }, { merge: true }).catch(() => {});
+                    }
+                  }
+                });
+              }
+
+              member.badgeType = newBadgeType;
+              member.badgeTitle = newBadgeTitle;
+              member.updatedAt = new Date().toISOString();
+              localStorage.setItem(TEAM_KEY, JSON.stringify(teamMembers));
+              renderTeamMembers();
+
+              if (db) {
+                try {
+                  await db.collection("team_members").doc(id).set({
+                    ...member,
+                    badgeType: newBadgeType,
+                    badgeTitle: newBadgeTitle,
+                    updatedAt: new Date().toISOString()
+                  }, { merge: true });
+
+                  if (newBadgeType === "gold") {
+                    await db.collection("team_settings").doc("employee_of_the_month").set({
+                      employeeId: id,
+                      employeeName: member.name,
+                      updatedAt: new Date().toISOString()
+                    });
+                  } else {
+                    const currentGold = teamMembers.find(m => m.badgeType === "gold");
+                    if (currentGold) {
+                      await db.collection("team_settings").doc("employee_of_the_month").set({
+                        employeeId: currentGold.id,
+                        employeeName: currentGold.name,
+                        updatedAt: new Date().toISOString()
+                      });
+                    } else {
+                      await db.collection("team_settings").doc("employee_of_the_month").delete().catch(() => {});
+                    }
+                  }
+                } catch(err) {
+                  console.warn("Firestore team badge update error:", err);
+                }
+              }
+              showToast(`🏆 Honor updated for ${member.name}: ${newBadgeTitle || "Standard UI"}`);
+            }
+          });
+        });
+
+        document.querySelectorAll(".move-team-up-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            const idx = teamMembers.findIndex(m => m.id === id);
+            if (idx > 0) {
+              const temp = teamMembers[idx];
+              teamMembers[idx] = teamMembers[idx - 1];
+              teamMembers[idx - 1] = temp;
+              teamMembers.forEach((m, i) => m.order = i);
+              localStorage.setItem(TEAM_KEY, JSON.stringify(teamMembers));
+              renderTeamMembers();
+              if (db) {
+                teamMembers.forEach(m => db.collection("team_members").doc(m.id).set({ order: m.order }, { merge: true }).catch(() => {}));
+              }
+              showToast("Team order updated.");
+            }
+          });
+        });
+
+        document.querySelectorAll(".move-team-down-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            const idx = teamMembers.findIndex(m => m.id === id);
+            if (idx < teamMembers.length - 1) {
+              const temp = teamMembers[idx];
+              teamMembers[idx] = teamMembers[idx + 1];
+              teamMembers[idx + 1] = temp;
+              teamMembers.forEach((m, i) => m.order = i);
+              localStorage.setItem(TEAM_KEY, JSON.stringify(teamMembers));
+              renderTeamMembers();
+              if (db) {
+                teamMembers.forEach(m => db.collection("team_members").doc(m.id).set({ order: m.order }, { merge: true }).catch(() => {}));
+              }
+              showToast("Team order updated.");
+            }
+          });
+        });
+
+        lucide.createIcons();
+      }
+
+      seedDefaultTeamBtn.addEventListener("click", async () => {
+        if (confirm("Reset & populate the 4 default showroom specialists (Kamal, Krupamani, Phani, Srinu)?")) {
+          teamMembers = DEFAULT_TEAM_MEMBERS.map((m, idx) => ({ ...m, order: idx }));
+          localStorage.setItem(TEAM_KEY, JSON.stringify(teamMembers));
+          renderTeamMembers();
+          if (db) {
+            for (const item of teamMembers) {
+              await db.collection("team_members").doc(item.id).set(item).catch(() => {});
+            }
+          }
+          showToast("Default 4 showroom specialists restored & synced!");
+        }
+      });
+
+
+function initFirestoreSync() {
+        const cloudBadge = document.getElementById("cloudStatusBadge");
+        const cloudText = document.getElementById("cloudStatusText");
+
+        if (!db) {
+          if (cloudBadge && cloudText) {
+            cloudBadge.className = "bg-amber-950 text-amber-300 border border-amber-800/60 font-mono text-[0.60rem] px-1.5 py-0.5 rounded flex items-center gap-1.5";
+            cloudText.textContent = "Local Storage Mode";
+          }
+          return;
+        }
+
+        // 1. Gallery Slides Listener
+        try {
+          db.collection("gallery_slides").onSnapshot((snapshot) => {
+            if (cloudBadge && cloudText) {
+              cloudBadge.className = "bg-emerald-950 text-emerald-300 border border-emerald-800/60 font-mono text-[0.60rem] px-1.5 py-0.5 rounded flex items-center gap-1.5";
+              cloudText.textContent = "Firebase Cloud Connected";
+            }
+            if (!snapshot.empty) {
+              const list = [];
+              snapshot.forEach((doc) => {
+                const d = doc.data();
+                list.push({ id: doc.id, ...d });
+              });
+              list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+              gallerySlides = list;
+              localStorage.setItem(GALLERY_KEY, JSON.stringify(gallerySlides));
+              renderGallerySlides();
+            } else {
+              DEFAULT_GALLERY_SLIDES.forEach((slide) => {
+                db.collection("gallery_slides").doc(slide.id).set(slide).catch(() => {});
+              });
+            }
+          }, (err) => {
+            console.warn("Gallery Firestore offline fallback:", err);
+          });
+        } catch(e) {}
+
+        // 2. Offers Listener
+        try {
+          db.collection("offers").onSnapshot((snapshot) => {
+            if (!snapshot.empty) {
+              const list = [];
+              snapshot.forEach((doc) => {
+                const d = doc.data();
+                list.push({ id: doc.id, ...d });
+              });
+              list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+              offers = list;
+              localStorage.setItem(OFFERS_KEY, JSON.stringify(offers));
+              renderOffers();
+            } else {
+              DEFAULT_OFFERS.forEach((def) => {
+                db.collection("offers").doc(def.id).set(def).catch(() => {});
+              });
+            }
+          }, (err) => {
+            console.warn("Offers Firestore offline fallback:", err);
+          });
+        } catch(e) {}
+
+        // 3. Enquiries Listener
+        try {
+          db.collection("enquiries").onSnapshot((snapshot) => {
+            const list = [];
+            snapshot.forEach((doc) => {
+              const d = doc.data();
+              list.push({ id: doc.id, ...d });
+            });
+            list.sort((a, b) => {
+              const timeA = a.timestamp || a.createdAt ? new Date(a.timestamp || a.createdAt).getTime() : 0;
+              const timeB = b.timestamp || b.createdAt ? new Date(b.timestamp || b.createdAt).getTime() : 0;
+              return timeB - timeA;
+            });
+            enquiries = list;
+            localStorage.setItem(ENQUIRIES_KEY, JSON.stringify(enquiries));
+            renderEnquiries();
+          });
+        } catch(e) {}
+
+        // 4. Team Members & Badges Listener
+        try {
+          db.collection("team_members").onSnapshot((snapshot) => {
+            if (!snapshot.empty) {
+              const list = [];
+              snapshot.forEach((doc) => {
+                const d = doc.data();
+                list.push({ id: doc.id, ...d });
+              });
+              list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+              teamMembers = list;
+              localStorage.setItem(TEAM_KEY, JSON.stringify(teamMembers));
+              renderTeamMembers();
+            } else {
+              DEFAULT_TEAM_MEMBERS.forEach((member, idx) => {
+                db.collection("team_members").doc(member.id).set({ ...member, order: idx }).catch(() => {});
+              });
+            }
+          }, (err) => {
+            console.warn("Team Firestore offline fallback:", err);
+          });
+        } catch(e) {}
+      }
+
+      // =====================================================================
+      // 1. HARDWARE GALLERY SLIDESHOW MANAGER (Full-Bleed Design)
+      // =====================================================================
+      const galleryForm = document.getElementById("galleryForm");
+      const galleryEditId = document.getElementById("galleryEditId");
+      const galleryFormHeading = document.getElementById("galleryFormHeading");
+      const cancelGalleryEditBtn = document.getElementById("cancelGalleryEditBtn");
+
+      const galleryFileInput = document.getElementById("galleryFileInput");
+      const galleryImageDropArea = document.getElementById("galleryImageDropArea");
+      const galleryImagePlaceholder = document.getElementById("galleryImagePlaceholder");
+      const galleryImagePreviewWrapper = document.getElementById("galleryImagePreviewWrapper");
+      const galleryImagePreviewImg = document.getElementById("galleryImagePreviewImg");
+      const removeGalleryImageBtn = document.getElementById("removeGalleryImageBtn");
+
+      const galleryCategoryInput = document.getElementById("galleryCategoryInput");
+      const galleryTagInput = document.getElementById("galleryTagInput");
+      const galleryTitleInput = document.getElementById("galleryTitleInput");
+      const gallerySubtitleInput = document.getElementById("gallerySubtitleInput");
+      const gallerySubmitBtn = document.getElementById("gallerySubmitBtn");
+      const gallerySubmitBtnText = document.getElementById("gallerySubmitBtnText");
+
+      // Live Gallery Preview Elements
+      const liveGalleryTag = document.getElementById("liveGalleryTag");
+      const liveGalleryCategory = document.getElementById("liveGalleryCategory");
+      const liveGalleryTitle = document.getElementById("liveGalleryTitle");
+      const liveGallerySubtitle = document.getElementById("liveGallerySubtitle");
+      const liveGalleryImg = document.getElementById("liveGalleryImg");
+
+      const galleryCardsGrid = document.getElementById("galleryCardsGrid");
+      const galleryBadgeCount = document.getElementById("galleryBadgeCount");
+      const galleryListCount = document.getElementById("galleryListCount");
+      const seedDefaultGalleryBtn = document.getElementById("seedDefaultGalleryBtn");
+      const galleryCategoryFilterBar = document.getElementById("galleryCategoryFilterBar");
+
+      function updateLiveGalleryPreview() {
+        liveGalleryTitle.textContent = galleryTitleInput.value.trim() || "Hardware Showcase Title";
+        liveGallerySubtitle.textContent = gallerySubtitleInput.value.trim() || "Detailed description and showroom availability details.";
+        liveGalleryTag.textContent = galleryTagInput.value.trim().toUpperCase() || "FLAGSHIP HARDWARE";
+        liveGalleryCategory.textContent = galleryCategoryInput.value.trim().toUpperCase() || "CUSTOM WORKSTATIONS";
+        liveGalleryImg.src = currentGalleryImage || "/assets/gpu_card.webp";
+      }
+
+      // Presets
+      document.querySelectorAll(".gallery-preset-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentGalleryImage = btn.getAttribute("data-url");
+          galleryImagePreviewImg.src = currentGalleryImage;
+          galleryImagePlaceholder.classList.add("hidden");
+          galleryImagePreviewWrapper.classList.remove("hidden");
+          updateLiveGalleryPreview();
+        });
+      });
+
+      // File upload
+      galleryImageDropArea.addEventListener("click", (e) => {
+        if (!e.target.closest("#removeGalleryImageBtn")) {
+          galleryFileInput.click();
+        }
+      });
+
+      galleryFileInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          try {
+            const compressed = await compressImageFile(file);
+            currentGalleryImage = compressed;
+            galleryImagePreviewImg.src = currentGalleryImage;
+            galleryImagePlaceholder.classList.add("hidden");
+            galleryImagePreviewWrapper.classList.remove("hidden");
+            updateLiveGalleryPreview();
+            showToast("Hardware image loaded & compressed!");
+          } catch(err) {
+            showError("Failed to load image file.");
+          }
+        }
+      });
+
+      removeGalleryImageBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        currentGalleryImage = "";
+        galleryFileInput.value = "";
+        galleryImagePreviewWrapper.classList.add("hidden");
+        galleryImagePlaceholder.classList.remove("hidden");
+        updateLiveGalleryPreview();
+      });
+
+      [galleryCategoryInput, galleryTagInput, galleryTitleInput, gallerySubtitleInput].forEach(inp => {
+        inp.addEventListener("input", updateLiveGalleryPreview);
+      });
+
+      galleryForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const editId = galleryEditId.value;
+        const category = galleryCategoryInput.value.trim().toUpperCase() || "CUSTOM WORKSTATIONS";
+        const tag = galleryTagInput.value.trim().toUpperCase() || "FLAGSHIP HARDWARE";
+        const title = galleryTitleInput.value.trim();
+        const subtitle = gallerySubtitleInput.value.trim();
+        const image = currentGalleryImage || "/assets/special_offer_1.webp";
+
+        if (!title) {
+          showError("Please enter a headline title for the slide.");
+          return;
+        }
+
+        gallerySubmitBtn.disabled = true;
+        gallerySubmitBtnText.textContent = "Saving...";
+
+        const slideData = {
+          category,
+          tag,
+          title,
+          subtitle,
+          image,
+          order: editId ? (gallerySlides.find(s => s.id === editId)?.order ?? 0) : gallerySlides.length,
+          updatedAt: new Date().toISOString()
+        };
+
+        const targetId = editId || ("slide_" + Date.now());
+
+        try {
+          if (db) {
+            await db.collection("gallery_slides").doc(targetId).set(slideData, { merge: true });
+          }
+        } catch(err) {
+          console.warn("Firestore save fallback to local:", err);
+        }
+
+        const idx = gallerySlides.findIndex(s => s.id === targetId);
+        if (idx >= 0) {
+          gallerySlides[idx] = { id: targetId, ...slideData };
+        } else {
+          gallerySlides.push({ id: targetId, ...slideData });
+        }
+        gallerySlides.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        localStorage.setItem(GALLERY_KEY, JSON.stringify(gallerySlides));
+
+        resetGalleryForm();
+        renderGallerySlides();
+        showToast(editId ? "Hardware slide updated & synced to cloud!" : "New hardware slide published live!");
+        gallerySubmitBtn.disabled = false;
+        gallerySubmitBtnText.textContent = "Publish Slide";
+      });
+
+      function resetGalleryForm() {
+        galleryEditId.value = "";
+        galleryForm.reset();
+        currentGalleryImage = "/assets/gpu_card.webp";
+        galleryImagePreviewWrapper.classList.add("hidden");
+        galleryImagePlaceholder.classList.remove("hidden");
+        galleryFormHeading.textContent = "Add Full-Image Gallery Slide";
+        cancelGalleryEditBtn.classList.add("hidden");
+        gallerySubmitBtnText.textContent = "Publish Slide";
+        updateLiveGalleryPreview();
+      }
+
+      cancelGalleryEditBtn.addEventListener("click", resetGalleryForm);
+
+      function renderGallerySlides() {
+        galleryBadgeCount.textContent = gallerySlides.length;
+        galleryListCount.textContent = gallerySlides.length;
+
+        const uniqueCategories = ["ALL", ...Array.from(new Set(gallerySlides.map(s => s.category || "CUSTOM WORKSTATIONS")))];
+        galleryCategoryFilterBar.innerHTML = "";
+        uniqueCategories.forEach(cat => {
+          const btn = document.createElement("button");
+          const isSel = currentGalleryFilter === cat;
+          btn.type = "button";
+          btn.className = `px-3 py-1 rounded-lg font-mono text-[0.68rem] font-bold whitespace-nowrap transition-all cursor-pointer ${
+            isSel ? "bg-[#F15A24] text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+          }`;
+          btn.textContent = cat;
+          btn.addEventListener("click", () => {
+            currentGalleryFilter = cat;
+            renderGallerySlides();
+          });
+          galleryCategoryFilterBar.appendChild(btn);
+        });
+
+        galleryCardsGrid.innerHTML = "";
+        const filtered = currentGalleryFilter === "ALL" 
+          ? gallerySlides 
+          : gallerySlides.filter(s => s.category === currentGalleryFilter);
+
+        if (filtered.length === 0) {
+          galleryCardsGrid.innerHTML = `
+            <div class="col-span-full py-12 text-center text-slate-400">
+              <i data-lucide="layers" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+              <p class="text-sm font-semibold text-slate-600">No hardware slides found in this category.</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        filtered.forEach((slide, idx) => {
+          const card = document.createElement("div");
+          card.className = "bg-white border border-slate-200 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden text-left";
+          
+          card.innerHTML = `
+            <div>
+              <div class="relative w-full h-40 bg-slate-950 rounded-xl overflow-hidden mb-3 border border-slate-800 flex items-center justify-center">
+                <img src="${slide.image}" alt="${slide.title}" class="max-h-full max-w-full object-contain" onerror="if(!this.dataset.retried){this.dataset.retried=1;this.src='https://www.globalcomputerseluru.com/assets/'+this.src.split('/').pop();}" />
+                <span class="absolute top-2 left-2 font-mono text-[0.60rem] font-bold px-2 py-0.5 rounded bg-black/80 text-white uppercase">${slide.category}</span>
+                <span class="absolute top-2 right-2 font-mono text-[0.60rem] font-bold px-2 py-0.5 rounded bg-white text-slate-800 border border-slate-200 shadow-2xs">#${idx + 1}</span>
+              </div>
+
+              <span class="font-mono text-[0.62rem] font-extrabold uppercase tracking-wider block mb-1 text-[#F15A24]">${slide.tag || "FLAGSHIP HARDWARE"}</span>
+              <h4 class="font-bold text-sm text-slate-900 leading-snug line-clamp-2 mb-1">${slide.title}</h4>
+              <p class="text-xs text-slate-500 line-clamp-2 mb-3">${slide.subtitle || ""}</p>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div class="flex items-center gap-1">
+                <button type="button" class="move-gallery-up-btn p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-30 cursor-pointer" data-id="${slide.id}" ${idx === 0 ? "disabled" : ""}>
+                  <i data-lucide="chevron-up" class="w-3.5 h-3.5"></i>
+                </button>
+                <button type="button" class="move-gallery-down-btn p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-30 cursor-pointer" data-id="${slide.id}" ${idx === filtered.length - 1 ? "disabled" : ""}>
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <button type="button" class="edit-gallery-btn px-2.5 py-1 bg-orange-50 hover:bg-orange-100 text-[#F15A24] font-bold text-xs rounded-lg inline-flex items-center gap-1 cursor-pointer" data-id="${slide.id}">
+                  <i data-lucide="edit-3" class="w-3 h-3"></i>
+                  <span>Edit</span>
+                </button>
+                <button type="button" class="del-gallery-btn p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg cursor-pointer" data-id="${slide.id}" data-title="${slide.title}">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          `;
+
+          galleryCardsGrid.appendChild(card);
+        });
+
+        // Edit slide
+        document.querySelectorAll(".edit-gallery-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const id = btn.getAttribute("data-id");
+            const slide = gallerySlides.find(s => s.id === id);
+            if (!slide) return;
+
+            galleryEditId.value = slide.id;
+            galleryCategoryInput.value = slide.category || "CUSTOM WORKSTATIONS";
+            galleryTagInput.value = slide.tag || "FLAGSHIP RIG ARCHITECTURE";
+            galleryTitleInput.value = slide.title || "";
+            gallerySubtitleInput.value = slide.subtitle || "";
+            currentGalleryImage = slide.image || "/assets/special_offer_1.webp";
+
+            galleryImagePreviewImg.src = currentGalleryImage;
+            galleryImagePlaceholder.classList.add("hidden");
+            galleryImagePreviewWrapper.classList.remove("hidden");
+
+            galleryFormHeading.textContent = "Edit Slide: " + slide.title;
+            cancelGalleryEditBtn.classList.remove("hidden");
+            gallerySubmitBtnText.textContent = "Update Slide";
+
+            updateLiveGalleryPreview();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          });
+        });
+
+        // Delete slide
+        document.querySelectorAll(".del-gallery-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            const title = btn.getAttribute("data-title");
+            if (confirm(`Delete hardware slide "${title}"?`)) {
+              try {
+                if (db) {
+                  await db.collection("gallery_slides").doc(id).delete();
+                }
+              } catch(e) {}
+              gallerySlides = gallerySlides.filter(s => s.id !== id);
+              localStorage.setItem(GALLERY_KEY, JSON.stringify(gallerySlides));
+              renderGallerySlides();
+              showToast("Slide removed.");
+            }
+          });
+        });
+
+        // Reorder Up/Down
+        document.querySelectorAll(".move-gallery-up-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            const idx = gallerySlides.findIndex(s => s.id === id);
+            if (idx > 0) {
+              const temp = gallerySlides[idx];
+              gallerySlides[idx] = gallerySlides[idx - 1];
+              gallerySlides[idx - 1] = temp;
+              gallerySlides.forEach((s, i) => s.order = i);
+              localStorage.setItem(GALLERY_KEY, JSON.stringify(gallerySlides));
+              renderGallerySlides();
+              if (db) {
+                gallerySlides.forEach(s => db.collection("gallery_slides").doc(s.id).set({ order: s.order }, { merge: true }).catch(() => {}));
+              }
+              showToast("Order updated.");
+            }
+          });
+        });
+
+        document.querySelectorAll(".move-gallery-down-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            const idx = gallerySlides.findIndex(s => s.id === id);
+            if (idx < gallerySlides.length - 1) {
+              const temp = gallerySlides[idx];
+              gallerySlides[idx] = gallerySlides[idx + 1];
+              gallerySlides[idx + 1] = temp;
+              gallerySlides.forEach((s, i) => s.order = i);
+              localStorage.setItem(GALLERY_KEY, JSON.stringify(gallerySlides));
+              renderGallerySlides();
+              if (db) {
+                gallerySlides.forEach(s => db.collection("gallery_slides").doc(s.id).set({ order: s.order }, { merge: true }).catch(() => {}));
+              }
+              showToast("Order updated.");
+            }
+          });
+        });
+
+        lucide.createIcons();
+      }
+
+      seedDefaultGalleryBtn.addEventListener("click", async () => {
+        if (confirm("Reset & populate Hardware Gallery with 6 default flagship showroom items?")) {
+          gallerySlides = DEFAULT_GALLERY_SLIDES.map((s, idx) => ({ ...s, order: idx }));
+          localStorage.setItem(GALLERY_KEY, JSON.stringify(gallerySlides));
+          renderGallerySlides();
+          if (db) {
+            for (const item of gallerySlides) {
+              await db.collection("gallery_slides").doc(item.id).set(item).catch(() => {});
+            }
+          }
+          showToast("Default hardware slides restored & synced!");
+        }
+      });
+
+      // =====================================================================
+      // 2. OFFERS & DEALS MANAGER LOGIC
+      // =====================================================================
+      const offerForm = document.getElementById("offerForm");
+      const offerEditId = document.getElementById("offerEditId");
+      const offerFormHeading = document.getElementById("offerFormHeading");
+      const cancelEditBtn = document.getElementById("cancelEditBtn");
+      const offerFileInput = document.getElementById("offerFileInput");
+      const imageDropArea = document.getElementById("imageDropArea");
+      const imagePlaceholder = document.getElementById("imagePlaceholder");
+      const imagePreviewWrapper = document.getElementById("imagePreviewWrapper");
+      const imagePreviewImg = document.getElementById("imagePreviewImg");
+      const removeImageBtn = document.getElementById("removeImageBtn");
+      const offerTitleInput = document.getElementById("offerTitleInput");
+      const offerBadgeInput = document.getElementById("offerBadgeInput");
+      const offerDescInput = document.getElementById("offerDescInput");
+      const offerSubmitBtn = document.getElementById("offerSubmitBtn");
+      const offerSubmitBtnText = document.getElementById("offerSubmitBtnText");
+      const seedDefaultOffersBtn = document.getElementById("seedDefaultOffersBtn");
+
+      const liveBadge = document.getElementById("liveBadge");
+      const liveBadgeText = document.getElementById("liveBadgeText");
+      const liveImg = document.getElementById("liveImg");
+      const liveTitle = document.getElementById("liveTitle");
+      const liveDesc = document.getElementById("liveDesc");
+      const offersCardsGrid = document.getElementById("offersCardsGrid");
+      const offersBadgeCount = document.getElementById("offersBadgeCount");
+      const offersListCount = document.getElementById("offersListCount");
+
+      function updateLiveOfferPreview() {
+        liveBadgeText.textContent = offerBadgeInput.value.trim().toUpperCase() || "SPECIAL OFFER";
+        liveTitle.textContent = offerTitleInput.value.trim() || "Promotional Offer Title";
+        liveDesc.textContent = offerDescInput.value.trim() || "One-line description of the offer will appear here.";
+        liveImg.src = currentOfferImage || "/assets/pro_monitor.webp";
+      }
+
+      document.querySelectorAll(".preset-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentOfferImage = btn.getAttribute("data-url");
+          imagePreviewImg.src = currentOfferImage;
+          imagePlaceholder.classList.add("hidden");
+          imagePreviewWrapper.classList.remove("hidden");
+          updateLiveOfferPreview();
+        });
+      });
+
+      imageDropArea.addEventListener("click", (e) => {
+        if (!e.target.closest("#removeImageBtn")) {
+          offerFileInput.click();
+        }
+      });
+
+      offerFileInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          try {
+            const compressed = await compressImageFile(file);
+            currentOfferImage = compressed;
+            imagePreviewImg.src = currentOfferImage;
+            imagePlaceholder.classList.add("hidden");
+            imagePreviewWrapper.classList.remove("hidden");
+            updateLiveOfferPreview();
+            showToast("Offer image uploaded & compressed!");
+          } catch(err) {
+            showError("Failed to process image.");
+          }
+        }
+      });
+
+      removeImageBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        currentOfferImage = "";
+        offerFileInput.value = "";
+        imagePreviewWrapper.classList.add("hidden");
+        imagePlaceholder.classList.remove("hidden");
+        updateLiveOfferPreview();
+      });
+
+      [offerTitleInput, offerBadgeInput, offerDescInput].forEach(inp => {
+        inp.addEventListener("input", updateLiveOfferPreview);
+      });
+
+      offerForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const editId = offerEditId.value;
+        const badge = offerBadgeInput.value.trim().toUpperCase() || "SPECIAL OFFER";
+        const offerTitle = offerTitleInput.value.trim();
+        const description = offerDescInput.value.trim();
+        const image = currentOfferImage || "/assets/special_offer_1.webp";
+
+        if (!description && !offerTitle) {
+          showError("Please enter offer title or description.");
+          return;
+        }
+
+        offerSubmitBtn.disabled = true;
+        offerSubmitBtnText.textContent = "Publishing...";
+
+        const offerData = {
+          badge,
+          offerTitle,
+          description,
+          image,
+          order: editId ? (offers.find(o => o.id === editId)?.order ?? 0) : offers.length,
+          updatedAt: new Date().toISOString()
+        };
+
+        const targetId = editId || ("offer_" + Date.now());
+
+        try {
+          if (db) {
+            await db.collection("offers").doc(targetId).set(offerData, { merge: true });
+          }
+        } catch(err) {
+          console.warn("Firestore offer save fallback to local:", err);
+        }
+
+        const idx = offers.findIndex(o => o.id === targetId);
+        if (idx >= 0) {
+          offers[idx] = { id: targetId, ...offerData };
+        } else {
+          offers.push({ id: targetId, ...offerData });
+        }
+        offers.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        localStorage.setItem(OFFERS_KEY, JSON.stringify(offers));
+
+        resetOfferForm();
+        renderOffers();
+        showToast(editId ? "Offer updated successfully!" : "New offer published live!");
+        offerSubmitBtn.disabled = false;
+        offerSubmitBtnText.textContent = "Publish Offer Slide";
+      });
+
+      function resetOfferForm() {
+        offerEditId.value = "";
+        offerForm.reset();
+        currentOfferImage = "/assets/pro_monitor.webp";
+        imagePreviewWrapper.classList.add("hidden");
+        imagePlaceholder.classList.remove("hidden");
+        offerFormHeading.textContent = "Upload & Add New Offer";
+        cancelEditBtn.classList.add("hidden");
+        offerSubmitBtnText.textContent = "Publish Offer Slide";
+        updateLiveOfferPreview();
+      }
+
+      cancelEditBtn.addEventListener("click", resetOfferForm);
+
+      function renderOffers() {
+        offersBadgeCount.textContent = offers.length;
+        offersListCount.textContent = offers.length;
+        offersCardsGrid.innerHTML = "";
+
+        if (offers.length === 0) {
+          offersCardsGrid.innerHTML = `
+            <div class="col-span-full py-12 text-center text-slate-400">
+              <i data-lucide="flame" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+              <p class="text-sm font-semibold text-slate-600">No active offers available.</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        offers.forEach((offer, idx) => {
+          const card = document.createElement("div");
+          card.className = "bg-white border border-slate-200 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden text-left";
+
+          card.innerHTML = `
+            <div>
+              <div class="relative w-full h-36 bg-slate-50 rounded-xl overflow-hidden mb-3 border border-slate-100 flex items-center justify-center p-2">
+                <img src="${offer.image}" alt="${offer.offerTitle || "Offer"}" class="w-full h-full object-cover" onerror="if(!this.dataset.retried){this.dataset.retried=1;this.src='https://www.globalcomputerseluru.com/assets/'+this.src.split('/').pop();}" />
+                <span class="absolute top-2 left-2 font-mono text-[0.60rem] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-[#F15A24] to-amber-500 text-white uppercase">${offer.badge || "DEAL"}</span>
+                <span class="absolute top-2 right-2 font-mono text-[0.60rem] font-bold px-2 py-0.5 rounded bg-white text-slate-800 border border-slate-200 shadow-2xs">#${idx + 1}</span>
+              </div>
+
+              ${offer.offerTitle ? `<h4 class="font-bold text-sm text-slate-900 leading-snug line-clamp-2 mb-1">${offer.offerTitle}</h4>` : ""}
+              <p class="text-xs text-slate-600 line-clamp-3 mb-4 leading-relaxed">${offer.description}</p>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+              <span class="font-mono text-[0.64rem] text-slate-400">Firebase Synced</span>
+              <div class="flex items-center gap-1.5">
+                <button type="button" class="edit-offer-btn px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-slate-950 font-bold text-xs rounded-lg inline-flex items-center gap-1 cursor-pointer" data-id="${offer.id}">
+                  <i data-lucide="edit-3" class="w-3 h-3"></i>
+                  <span>Edit</span>
+                </button>
+                <button type="button" class="del-offer-btn p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg cursor-pointer" data-id="${offer.id}">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          `;
+
+          offersCardsGrid.appendChild(card);
+        });
+
+        document.querySelectorAll(".edit-offer-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const id = btn.getAttribute("data-id");
+            const offer = offers.find(o => o.id === id);
+            if (!offer) return;
+
+            offerEditId.value = offer.id;
+            offerBadgeInput.value = offer.badge || "EXCLUSIVE DEAL";
+            offerTitleInput.value = offer.offerTitle || "";
+            offerDescInput.value = offer.description || "";
+            currentOfferImage = offer.image || "/assets/pro_monitor.webp";
+
+            imagePreviewImg.src = currentOfferImage;
+            imagePlaceholder.classList.add("hidden");
+            imagePreviewWrapper.classList.remove("hidden");
+
+            offerFormHeading.textContent = "Edit Offer: " + (offer.offerTitle || "Special Promo");
+            cancelEditBtn.classList.remove("hidden");
+            offerSubmitBtnText.textContent = "Update Offer Slide";
+            updateLiveOfferPreview();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          });
+        });
+
+        document.querySelectorAll(".del-offer-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            if (confirm("Delete this promotional offer?")) {
+              try {
+                if (db) {
+                  await db.collection("offers").doc(id).delete();
+                }
+              } catch(e) {}
+              offers = offers.filter(o => o.id !== id);
+              localStorage.setItem(OFFERS_KEY, JSON.stringify(offers));
+              renderOffers();
+              showToast("Offer removed.");
+            }
+          });
+        });
+
+        lucide.createIcons();
+      }
+
+      seedDefaultOffersBtn.addEventListener("click", async () => {
+        if (confirm("Reset & populate Special Offers with default showroom promotions?")) {
+          offers = DEFAULT_OFFERS.map((o, idx) => ({ ...o, order: idx }));
+          localStorage.setItem(OFFERS_KEY, JSON.stringify(offers));
+          renderOffers();
+          if (db) {
+            for (const item of offers) {
+              await db.collection("offers").doc(item.id).set(item).catch(() => {});
+            }
+          }
+          showToast("Default offers restored & synced!");
+        }
+      });
+
+      // =====================================================================
+      // 3. CUSTOMER ENQUIRIES DESK LOGIC
+      // =====================================================================
+      const enquiriesListContainer = document.getElementById("enquiriesListContainer");
+      const enquiriesBadgeCount = document.getElementById("enquiriesBadgeCount");
+      const enquirySearchInput = document.getElementById("enquirySearchInput");
+      const clearAllEnqBtn = document.getElementById("clearAllEnqBtn");
+      const statTotalEnq = document.getElementById("statTotalEnq");
+      const statNewEnq = document.getElementById("statNewEnq");
+      const statContactedEnq = document.getElementById("statContactedEnq");
+      const statResolvedEnq = document.getElementById("statResolvedEnq");
+
+      function renderEnquiries() {
+        enquiriesBadgeCount.textContent = enquiries.length;
+        statTotalEnq.textContent = enquiries.length;
+        statNewEnq.textContent = enquiries.filter(e => (e.status || "NEW").toUpperCase() === "NEW").length;
+        statContactedEnq.textContent = enquiries.filter(e => (e.status || "").toUpperCase() === "CONTACTED").length;
+        statResolvedEnq.textContent = enquiries.filter(e => (e.status || "").toUpperCase() === "RESOLVED").length;
+
+        enquiriesListContainer.innerHTML = "";
+
+        const filtered = enquiries.filter(enq => {
+          const statusMatch = currentEnquiryFilter === "ALL" || (enq.status || "NEW").toUpperCase() === currentEnquiryFilter;
+          const search = currentEnquirySearch.toLowerCase();
+          const searchMatch = !search || 
+            (enq.fullName || enq.name || "").toLowerCase().includes(search) ||
+            (enq.phoneNumber || enq.phone || "").toLowerCase().includes(search) ||
+            (enq.productRequirement || enq.product || "").toLowerCase().includes(search) ||
+            (enq.message || enq.requirement || "").toLowerCase().includes(search);
+          return statusMatch && searchMatch;
+        });
+
+        if (filtered.length === 0) {
+          enquiriesListContainer.innerHTML = `
+            <div class="p-12 text-center bg-white rounded-3xl border border-slate-200 text-slate-400">
+              <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+              <p class="text-sm font-semibold text-slate-600">No customer enquiries found.</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        filtered.forEach(enq => {
+          const card = document.createElement("div");
+          const isNew = (enq.status || "NEW").toUpperCase() === "NEW";
+          card.className = `bg-white rounded-2xl p-5 border ${isNew ? "border-orange-300 shadow-sm" : "border-slate-200"} space-y-3 transition-all text-left`;
+
+          const rawPhone = (enq.phoneNumber || enq.phone || "").replace(/\D/g, "");
+          const cleanPhone = rawPhone.length === 10 ? rawPhone : (rawPhone.length > 10 ? rawPhone.slice(-10) : rawPhone);
+          const waLink = cleanPhone ? `https://wa.me/91${cleanPhone}?text=${encodeURIComponent("Hello " + (enq.fullName || enq.name || "Customer") + ", thank you for contacting Global Computers Eluru regarding " + (enq.productRequirement || enq.product || "Hardware Consultation") + ". How can we assist you today?")}` : "#";
+
+          card.innerHTML = `
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+              <div class="flex items-start gap-3.5">
+                <div class="w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-white shadow-sm flex-shrink-0 ${isNew ? "bg-[#F15A24]" : "bg-slate-700"}">
+                  <i data-lucide="user" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2.5 flex-wrap">
+                    <h4 class="font-bold text-base text-slate-900">${enq.fullName || enq.name || "Customer"}</h4>
+                    <span class="font-mono text-[0.62rem] font-bold px-2.5 py-0.5 rounded-full uppercase ${
+                      (enq.status || "NEW").toUpperCase() === "NEW" ? "bg-orange-100 text-[#F15A24]" : (enq.status || "").toUpperCase() === "CONTACTED" ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"
+                    }">● ${enq.status || "NEW"}</span>
+                    ${enq.productRequirement || enq.product ? `<span class="bg-orange-50 text-[#F15A24] border border-orange-200 font-mono text-[0.62rem] font-bold px-2 py-0.5 rounded">${enq.productRequirement || enq.product}</span>` : ""}
+                  </div>
+                  <div class="flex items-center gap-4 text-xs text-slate-500 mt-1 flex-wrap">
+                    <span class="flex items-center gap-1 font-bold text-slate-700">
+                      <i data-lucide="phone" class="w-3.5 h-3.5 text-[#F15A24]"></i>
+                      <span>${enq.phoneNumber || enq.phone || "N/A"}</span>
+                    </span>
+                    ${enq.emailAddress || enq.email ? `<span class="flex items-center gap-1"><i data-lucide="mail" class="w-3 h-3 text-slate-400"></i><span>${enq.emailAddress || enq.email}</span></span>` : ""}
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2.5 flex-wrap">
+                ${cleanPhone ? `
+                  <a href="${waLink}" target="_blank" class="enq-wa-btn inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer" data-id="${enq.id}">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+                    <span>WhatsApp Chat</span>
+                  </a>
+                  <a href="tel:${cleanPhone}" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                    <i data-lucide="phone" class="w-3.5 h-3.5 text-[#F15A24]"></i>
+                    <span>Call</span>
+                  </a>
+                ` : ""}
+              </div>
+            </div>
+
+            ${enq.message || enq.requirement ? `
+              <p class="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-100 font-medium leading-relaxed">
+                "${enq.message || enq.requirement}"
+              </p>
+            ` : ""}
+
+            <div class="pt-2 flex items-center justify-between">
+              <span class="text-[0.68rem] font-mono text-slate-400">Lead Status Control:</span>
+              <div class="flex items-center gap-2">
+                <select class="enq-status-select bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 outline-none cursor-pointer" data-id="${enq.id}">
+                  <option value="NEW" ${(enq.status || "NEW").toUpperCase() === "NEW" ? "selected" : ""}>New</option>
+                  <option value="CONTACTED" ${(enq.status || "").toUpperCase() === "CONTACTED" ? "selected" : ""}>In Progress</option>
+                  <option value="RESOLVED" ${(enq.status || "").toUpperCase() === "RESOLVED" ? "selected" : ""}>Resolved</option>
+                </select>
+                <button type="button" class="del-enq-btn p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg cursor-pointer" data-id="${enq.id}">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          `;
+
+          enquiriesListContainer.appendChild(card);
+        });
+
+        document.querySelectorAll(".enq-status-select").forEach(sel => {
+          sel.addEventListener("change", async (e) => {
+            const id = sel.getAttribute("data-id");
+            const newStatus = e.target.value;
+            try {
+              if (db) {
+                await db.collection("enquiries").doc(id).set({ status: newStatus }, { merge: true });
+              }
+            } catch(err) {}
+            enquiries = enquiries.map(enq => enq.id === id ? { ...enq, status: newStatus } : enq);
+            localStorage.setItem(ENQUIRIES_KEY, JSON.stringify(enquiries));
+            renderEnquiries();
+            showToast("Lead status updated to " + newStatus);
+          });
+        });
+
+        document.querySelectorAll(".del-enq-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            if (confirm("Delete this customer enquiry?")) {
+              try {
+                if (db) {
+                  await db.collection("enquiries").doc(id).delete();
+                }
+              } catch(err) {}
+              enquiries = enquiries.filter(e => e.id !== id);
+              localStorage.setItem(ENQUIRIES_KEY, JSON.stringify(enquiries));
+              renderEnquiries();
+              showToast("Enquiry deleted.");
+            }
+          });
+        });
+
+        lucide.createIcons();
+      }
+
+      document.querySelectorAll(".enq-filter-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".enq-filter-btn").forEach(b => {
+            b.className = "enq-filter-btn px-3 py-1 rounded-lg font-mono text-[0.68rem] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700";
+          });
+          btn.className = "enq-filter-btn px-3 py-1 rounded-lg font-mono text-[0.68rem] font-bold bg-slate-900 text-white";
+          currentEnquiryFilter = btn.getAttribute("data-status");
+          renderEnquiries();
+        });
+      });
+
+      enquirySearchInput.addEventListener("input", (e) => {
+        currentEnquirySearch = e.target.value.trim();
+        renderEnquiries();
+      });
+
+      clearAllEnqBtn.addEventListener("click", () => {
+        if (confirm("Clear all customer enquiries from inbox?")) {
+          enquiries = [];
+          localStorage.setItem(ENQUIRIES_KEY, JSON.stringify(enquiries));
+          renderEnquiries();
+          showToast("Inbox cleared.");
+        }
+      });
+
+      // Initial check
+      checkAuth();
+    })();
+  </script>
+</body>
+</html>

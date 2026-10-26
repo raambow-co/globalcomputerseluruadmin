@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "globalcomputerseluru-dddd3"
+  },
+  "targets": {
+    "globalcomputerseluru-dddd3": {
+      "hosting": {
+        "admin": [
+          "globalcomputers-admin"
+        ]
+      }
+    }
+  }
+}
